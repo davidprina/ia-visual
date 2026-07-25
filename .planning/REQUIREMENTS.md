@@ -170,13 +170,109 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pendiente de asignación por el roadmap) | — | Pending |
+| NUC-01 | Phase 1 | Pending |
+| NUC-02 | Phase 2 | Pending |
+| NUC-03 | Phase 2 | Pending |
+| NUC-04 | Phase 1 | Pending |
+| NUC-05 | Phase 1 | Pending |
+| NUC-06 | Phase 1 | Pending |
+| CAP-01 | Phase 2 | Pending |
+| CAP-02 | Phase 2 | Pending |
+| CAP-03 | Phase 1 | Pending |
+| CAP-04 | Phase 1 | Pending |
+| CAP-05 | Phase 2 | Pending |
+| CAP-06 | Phase 2 | Pending |
+| CAP-07 | Phase 2 | Pending |
+| CAP-08 | Phase 2 | Pending |
+| EVI-01 | Phase 3 | Pending |
+| EVI-02 | Phase 3 | Pending |
+| EVI-03 | Phase 3 | Pending |
+| EVI-04 | Phase 3 | Pending |
+| EVI-05 | Phase 1 | Pending |
+| EVI-06 | Phase 1 | Pending |
+| EVI-07 | Phase 9 | Pending |
+| EVI-08 | Phase 9 | Pending |
+| EVI-09 | Phase 9 | Pending |
+| EVI-10 | Phase 3 | Pending |
+| VIS-01 | Phase 4 | Pending |
+| VIS-02 | Phase 4 | Pending |
+| VIS-03 | Phase 4 | Pending |
+| VIS-04 | Phase 4 | Pending |
+| VIS-05 | Phase 4 | Pending |
+| VIS-06 | Phase 4 | Pending |
+| VIS-07 | Phase 12 | Pending |
+| VIS-08 | Phase 12 | Pending |
+| LPR-01 | Phase 5 | Pending |
+| LPR-02 | Phase 5 | Pending |
+| LPR-03 | Phase 5 | Pending |
+| LPR-04 | Phase 5 | Pending |
+| LPR-05 | Phase 5 | Pending |
+| LPR-06 | Phase 5 | Pending |
+| LPR-07 | Phase 5 | Pending |
+| UI-01 | Phase 3 | Pending |
+| UI-02 | Phase 2 | Pending |
+| UI-03 | Phase 3 | Pending |
+| UI-04 | Phase 7 | Pending |
+| UI-05 | Phase 2 | Pending |
+| UI-06 | Phase 6 | Pending |
+| UI-07 | Phase 3 | Pending |
+| VIA-01 | Phase 6 | Pending |
+| VIA-02 | Phase 6 | Pending |
+| VIA-03 | Phase 6 | Pending |
+| VIA-04 | Phase 6 | Pending |
+| VIA-05 | Phase 1 | Pending |
+| ING-01 | Phase 8 | Pending |
+| ING-02 | Phase 8 | Pending |
+| ING-03 | Phase 8 | Pending |
+| ING-04 | Phase 8 | Pending |
+| AUD-01 | Phase 7 | Pending |
+| AUD-02 | Phase 7 | Pending |
+| AUD-03 | Phase 7 | Pending |
+| AUD-04 | Phase 7 | Pending |
+| AUD-05 | Phase 7 | Pending |
+| AUD-06 | Phase 7 | Pending |
+| SLA-01 | Phase 8 | Pending |
+| SLA-02 | Phase 8 | Pending |
+| SLA-03 | Phase 8 | Pending |
+| CON-01 | Phase 9 | Pending |
+| CON-02 | Phase 9 | Pending |
+| CON-03 | Phase 9 | Pending |
+| INT-01 | Phase 10 | Pending |
+| INT-02 | Phase 10 | Pending |
+| INT-03 | Phase 10 | Pending |
+| INT-04 | Phase 1 | Pending |
+| INT-05 | Phase 1 | Pending |
+| INT-06 | Phase 10 | Pending |
+| DIS-01 | Phase 11 | Pending |
+| DIS-02 | Phase 11 | Pending |
+| DIS-03 | Phase 11 | Pending |
+| DIS-04 | Phase 11 | Pending |
+| DIS-05 | Phase 1 | Pending |
+| DIS-06 | Phase 1 | Pending |
+
+**Requerimientos por fase:**
+
+| Fase | Requerimientos | Cantidad |
+|------|----------------|----------|
+| Phase 1 — Núcleo, evidencia trazable y contratos externos | NUC-01, NUC-04, NUC-05, NUC-06, CAP-03, CAP-04, EVI-05, EVI-06, VIA-05, INT-04, INT-05, DIS-05, DIS-06 | 13 |
+| Phase 2 — Ingesta multi-fuente robusta y visor que no miente | NUC-02, NUC-03, CAP-01, CAP-02, CAP-05, CAP-06, CAP-07, CAP-08, UI-02, UI-05 | 10 |
+| Phase 3 — Captura sincronizada de un botón (Core Value) | EVI-01, EVI-02, EVI-03, EVI-04, EVI-10, UI-01, UI-03, UI-07 | 8 |
+| Phase 4 — Detección por IA con proveedor verificado | VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06 | 6 |
+| Phase 5 — Reconocimiento de patentes como sugerencia confirmable | LPR-01, LPR-02, LPR-03, LPR-04, LPR-05, LPR-06, LPR-07 | 7 |
+| Phase 6 — Flujo de egreso: viaje, captura y liberación | VIA-01, VIA-02, VIA-03, VIA-04, UI-06 | 5 |
+| Phase 7 — Auditoría de peso, tolerancias y excepciones | AUD-01, AUD-02, AUD-03, AUD-04, AUD-05, AUD-06, UI-04 | 7 |
+| Phase 8 — Ingreso de proveedores, documentación y SLA | ING-01, ING-02, ING-03, ING-04, SLA-01, SLA-02, SLA-03 | 7 |
+| Phase 9 — Consulta, evidencia exportable y vista para Compras | EVI-07, EVI-08, EVI-09, CON-01, CON-02, CON-03 | 6 |
+| Phase 10 — Integraciones reales: balanza, PALJET y recorrido | INT-01, INT-02, INT-03, INT-06 | 4 |
+| Phase 11 — Empaquetado, instalador firmado y resiliencia | DIS-01, DIS-02, DIS-03, DIS-04 | 4 |
+| Phase 12 — Motor de visión clásica seleccionable en caliente | VIS-07, VIS-08 | 2 |
 
 **Coverage:**
-- v1 requirements: 79 total
-- Mapped to phases: 0
-- Unmapped: 79 ⚠️ (se resuelve al crear el ROADMAP)
+- Requerimientos v1: 79 en total
+- Mapeados a fases: 79
+- Sin mapear: 0 ✓
+- Duplicados (asignados a más de una fase): 0 ✓
 
 ---
 *Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 after initial definition*
+*Last updated: 2026-07-25 — traceability completada al crear ROADMAP.md (12 fases)*
