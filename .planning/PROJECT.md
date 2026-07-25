@@ -32,8 +32,12 @@ Que la captura de evidencia visual sea confiable, sincronizada y trazable: cuand
 - [ ] Soportar archivos de video como fuente, para pruebas deterministas sin hardware
 - [ ] Almacenar la evidencia capturada con metadatos completos (timestamp, cámara, viaje asociado) y consultarla después
 - [ ] Detectar y reconocer patentes de vehículos (LPR) para identificar automáticamente el camión
-- [ ] Detectar vehículos y personas mediante motor de IA (YOLO sobre ONNX Runtime)
-- [ ] Ofrecer un motor de visión clásica basado en OpenCV, seleccionable por el usuario como alternativa al motor de IA
+- [ ] Detectar vehículos y personas mediante motor de IA (RF-DETR sobre ONNX Runtime)
+- [ ] Ofrecer un motor de visión clásica basado en OpenCV, seleccionable por el usuario como alternativa al motor de IA (última fase de v1)
+- [ ] Calcular y persistir la huella SHA-256 de cada imagen en el momento de la ingesta, como base de la cadena de custodia
+- [ ] Marcar explícitamente toda captura incompleta, sin permitir que aparente estar completa
+- [ ] Exponer en la interfaz qué proveedor de ejecución está activo realmente, no el solicitado
+- [ ] Ofrecer a Compras una vista de solo lectura en red local con las capturas del momento
 - [ ] Seleccionar automáticamente el mejor proveedor de ejecución disponible (GPU si existe, CPU si no)
 - [ ] Configurar el layout de visualización de cámaras (1, 2x2, 3x3, 4x4) según necesidad del operador
 - [ ] Reconectar automáticamente ante caída de una cámara sin detener el resto del sistema
@@ -63,8 +67,10 @@ Que la captura de evidencia visual sea confiable, sincronizada y trazable: cuand
 - **Videovigilancia continua 24/7 con grabación permanente** — El flujo es por evento, disparado por el portero. Grabar de forma continua multiplicaría el costo de almacenamiento sin aportar al objetivo de auditar la carga.
 - **Escala de 16 o más cámaras simultáneas** — Se descartó tras leer los requerimientos: el documento pide un mínimo de 2 cámaras HD más una webcam. La arquitectura admite N fuentes, pero el objetivo de escala se fija en el orden de las unidades, no de las decenas.
 - **Cámaras industriales GigE Vision / USB3 Vision** — Requieren SDK propietario por fabricante y encarecen el empaquetado multiplataforma. El puerto de fuente de video queda abierto para incorporarlas sin refactorizar el dominio.
-- **Entrenamiento de modelos propios y flujo de etiquetado de datasets** — Las clases necesarias (persona, vehículo) ya están cubiertas por modelos YOLO preentrenados. Sumar entrenamiento agregaría un proyecto de datos completo que hoy nadie pidió.
-- **Aplicación móvil o interfaz web** — El puesto de portería es un equipo fijo de escritorio. Nada en los requerimientos justifica un segundo canal.
+- **Entrenamiento de modelos propios para detección de objetos** — Las clases necesarias (persona, vehículo) ya están cubiertas por modelos preentrenados con licencia permisiva. Excepción acotada: sí se entrenará un detector de placa de una sola clase antes del release comercial, para eliminar el riesgo legal de los pesos derivados de YOLOv9.
+- **Aplicación móvil** — El puesto de portería es un equipo fijo de escritorio. Nada en los requerimientos justifica un canal móvil.
+- **Aplicación web completa con edición y configuración** — Se admite únicamente una vista de solo lectura en red local para Compras (requerimiento explícito del documento fuente). Toda la operación y la configuración viven en la aplicación de escritorio.
+- **Ultralytics YOLO (v8/v11) en cualquiera de sus formas** — Licencia AGPL-3.0: obligaría a publicar el código fuente completo de un producto que se comercializa. Prohibido incluso para pruebas que puedan filtrarse al producto.
 
 ## Context
 
@@ -106,6 +112,13 @@ Que la captura de evidencia visual sea confiable, sincronizada y trazable: cuand
 | Integraciones externas al final del roadmap | Reduce el riesgo de bloqueo por dependencias de terceros y permite entregar valor verificable antes. Contrapartida: la auditoría de pesos, que es el corazón del negocio, se valida tarde | — Pendiente |
 | Solo lectura sobre sistemas externos, escritura únicamente en la base local | Regla global del usuario, ratificada explícitamente para este proyecto. Elimina el riesgo de corromper datos productivos del ERP o de la balanza | — Pendiente |
 | Descartar la escala de 16 o más cámaras planteada al inicio del relevamiento | El documento fuente pide un mínimo de 2 cámaras HD más una webcam. Dimensionar para decenas de streams habría impuesto decodificación por hardware e inferencia por lotes sin ninguna necesidad real | — Pendiente |
+| **Reemplazar YOLO de Ultralytics por RF-DETR-Nano/Small (Apache-2.0)** | Ultralytics YOLOv8/v11 es AGPL-3.0 y obligaría a publicar el código fuente completo de un producto que se vende. RF-DETR ofrece precisión comparable bajo Apache-2.0, sin restricción comercial. Corrige el enunciado original del proyecto, que especificaba YOLO | — Pendiente |
+| Stack: Python 3.12 + PySide6-Essentials (LGPL-3.0) | Único ecosistema donde ONNX Runtime, OpenCV, PyAV y el stack de ALPR abierto conviven con bindings de primera clase. El argumento a favor de C++/Rust desapareció al descartar la escala de 16+ cámaras. Obliga a empaquetar con PyInstaller `--onedir` (no `--onefile`) para cumplir la LGPL | — Pendiente |
+| Ingesta RTSP con PyAV, no con `cv2.VideoCapture` | `CAP_PROP_BUFFERSIZE` se ignora con el backend FFMPEG (issue OpenCV #23430), por lo que la latencia crece de forma monótona y la mitigación más difundida no tiene efecto. PyAV expone timeouts reales, transporte TCP explícito y excepciones limpias para la reconexión | — Pendiente |
+| Huella SHA-256 calculada en el momento de ingesta de cada imagen | Es la base de la cadena de custodia y no es retrofiteable: sin ella desde el primer día, todo el histórico de evidencia acumulada pierde valor probatorio. Es además el diferencial que ningún competidor relevado ofrece | — Pendiente |
+| Motor de visión clásica al final de v1, no en las fases tempranas | Se sostiene como requisito propio del usuario, pero ningún producto del rubro ofrece elegir motor de visión y no aporta valor de mercado. La abstracción de motor se diseña desde el inicio; la segunda implementación llega último para no bloquear lo que el negocio sí pide | ⚠️ Revisar |
+| Vista de solo lectura en red local para Compras | El documento fuente exige que Compras vea las fotos en el instante en que el camión se presenta. Se resuelve con un panel de consulta sin edición ni configuración, que encaja con el núcleo headless ya decidido y no convierte el proyecto en una aplicación web | — Pendiente |
+| Usar `fast-alpr` en desarrollo y entrenar un detector de placa propio antes del release comercial | Los pesos del detector de placa derivan de YOLOv9 (GPL-3.0) aunque el código sea MIT. Permite validar el flujo completo de LPR ya mismo, con el reemplazo agendado como tarea bloqueante de la primera venta | — Pendiente |
 
 ## Evolution
 
