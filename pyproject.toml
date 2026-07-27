@@ -1,0 +1,152 @@
+[project]
+name = "porteria"
+version = "0.1.0"
+description = "Sistema de Control de Portería con Visión Artificial — núcleo de evidencia trazable"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "sqlalchemy==2.0.51",
+    "alembic==1.18.5",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.14.2",
+    "opencv-python-headless==5.0.0.93",
+    "numpy==2.5.1",
+    "typer==0.27.0",
+    "argon2-cffi==25.1.0",
+    "structlog==26.1.0",
+    "platformdirs==4.11.0",
+]
+
+# Transporte HTTP: NINGUNA dependencia. Las consultas a PALJET y a la balanza
+# (plan 01-10) son GET simples con autenticación básica y timeout, resueltas con
+# `urllib.request` de la biblioteca estándar, envuelto en
+# `porteria.composicion.transporte_externo` e inyectado en los adaptadores.
+# Prohibido agregar requests, httpx, aiohttp o urllib3 en esta fase.
+
+[project.scripts]
+porteria = "porteria.cli.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/porteria"]
+
+# ---------------------------------------------------------------------------
+# Grupos de dependencias (PEP 735). El grupo `dominio` declara ÚNICAMENTE lo
+# que el paquete dominio/ necesita — hoy, el conjunto vacío. Es lo que hace
+# posible el entorno realmente separado de D-52:
+#   uv sync --only-group dominio --no-default-groups --exact
+# ---------------------------------------------------------------------------
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "import-linter==2.13",
+    "ruff==0.16.0",
+    "pip-licenses==5.5.5",
+]
+dominio = []
+
+# ---------------------------------------------------------------------------
+# Pruebas
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+markers = [
+    "lenta: prueba de larga duración; tanda programada, no bloquea la fusión (D-53)",
+]
+
+# ---------------------------------------------------------------------------
+# Compuerta de arquitectura estática (NUC-01, D-47, D-52).
+# NO activar exclude_type_checking_imports: dejaría pasar los imports bajo
+# TYPE_CHECKING, que es una de las cuatro vías de evasión verificadas.
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "porteria"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+id = "dominio_limpio"
+name = "El dominio no toca infraestructura pesada"
+type = "forbidden"
+source_modules = ["porteria.dominio"]
+forbidden_modules = [
+    "cv2",
+    "onnxruntime",
+    "PySide6",
+    "av",
+    "numpy",
+    "sqlalchemy",
+    "alembic",
+    "typer",
+    "click",
+    "structlog",
+    "argon2",
+    "pydantic",
+]
+allow_indirect_imports = false
+as_packages = true
+
+[[tool.importlinter.contracts]]
+id = "capas"
+name = "Capas: cli -> infraestructura -> aplicacion -> dominio"
+type = "layers"
+layers = [
+    "porteria.cli",
+    "porteria.infraestructura",
+    "porteria.aplicacion",
+    "porteria.dominio",
+]
+exhaustive = false
+
+[[tool.importlinter.contracts]]
+id = "sin_conexion_cruda"
+name = "Los adaptadores externos no pueden abrir una conexion cruda"
+type = "forbidden"
+source_modules = ["porteria.infraestructura.externos"]
+# `http.client` no es declarable: import-linter 2.13 rechaza subpaquetes de
+# paquetes externos ("subpackages of external packages are not valid"). Se
+# prohíbe `http` entero, que es un superconjunto y por lo tanto más estricto.
+forbidden_modules = ["sqlite3", "requests", "urllib", "http", "socket"]
+allow_indirect_imports = false
+
+[[tool.importlinter.contracts]]
+id = "sin_deserializacion_insegura"
+name = "Nadie deserializa formatos que ejecutan codigo (T-01-07)"
+type = "forbidden"
+source_modules = ["porteria"]
+forbidden_modules = ["pickle", "shelve", "marshal"]
+allow_indirect_imports = false
+
+# ---------------------------------------------------------------------------
+# Lint
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# S101 (assert) es el idioma de pytest; S603/S607 (subprocess) son el idioma de
+# las compuertas, que ejecutan `uv` a propósito y con argumentos literales.
+"tests/**" = ["S101", "S603", "S607"]
+"scripts/**" = ["S603", "S607"]
+# src/porteria/infraestructura/ NO tiene excepciones: S608 (SQL por
+# interpolación de cadenas) se aplica entero — T-01-05 / T-01-03.
+
+# ---------------------------------------------------------------------------
+# Cobertura: se mide y se ve, NUNCA bloquea (D-57). Deliberadamente sin
+# fail_under: lo que bloquea es que existan y pasen las pruebas de los
+# criterios de éxito, no un porcentaje.
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["src/porteria"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

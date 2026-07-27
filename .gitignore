@@ -1,0 +1,20 @@
+# Entorno y artefactos de Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Base de datos local (la evidencia y su base nunca se versionan)
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Cachés de herramientas
+.pytest_cache/
+.ruff_cache/
+.import_linter_cache/
+.coverage
+htmlcov/
+
+# Videos de prueba: el sintético se genera en conftest; los recortes reales de
+# D-59 se versionan explícitamente cuando existan. Ver tests/recursos/videos/README.md
+tests/recursos/videos/*.mp4

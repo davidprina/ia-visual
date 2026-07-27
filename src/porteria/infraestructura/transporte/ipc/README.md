@@ -1,0 +1,1 @@
+Este directorio existe vacío a propósito: es el recordatorio de que el contrato núcleo↔interfaz es serializable y versionado desde el primer mensaje, aunque el transporte de v1 sea en memoria. El día que el núcleo se extraiga a un proceso aparte, acá vive la implementación IPC del mismo puerto y el dominio no cambia una línea.
