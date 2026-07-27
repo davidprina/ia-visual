@@ -1,10 +1,11 @@
 ---
 phase: 1
 slug: n-cleo-evidencia-trazable-y-contratos-externos-congelados
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-25
+updated: 2026-07-26
 ---
 
 # Phase 1 — Validation Strategy
@@ -23,11 +24,12 @@ created: 2026-07-25
 | **Quick run command** | `uv run pytest -q -m "not lenta"` |
 | **Full suite command** | `uv run pytest -q` |
 | **Compuerta de arquitectura (estática)** | `uv run lint-imports --no-cache` |
-| **Compuerta de aislamiento (runtime)** | `uv run --isolated --no-project python tests/arquitectura/test_dominio_aislado.py` |
+| **Compuerta de aislamiento (runtime)** | `uv run --python 3.12 --isolated --no-project python tests/arquitectura/sonda_dominio_aislado.py` — **sin `PYTHONPATH`**: la sonda se auto-resuelve `src/` en `sys.path[0]` como primera sentencia ejecutable, así el mismo comando literal corre a mano, desde pytest y desde `scripts/compuerta.py` |
+| **Compuerta de invariantes de código** | `uv run pytest tests/arquitectura/test_invariantes_de_codigo.py -q` — reemplaza todo criterio basado en `grep`, que no es verificable en Windows (D-54) |
 | **Compuerta de licencias** | `uv run pip-licenses --allow-only "<lista blanca>"` |
 | **Plataforma de la compuerta** | **Windows únicamente** (D-54) |
 | **Marcadores** | `lenta` — tanda programada, no bloquea la fusión (D-53) |
-| **Estimated runtime** | Suite rápida ~90 s (incluye `test_frescura_acotada` de 60 s) · Suite completa ~15 min (incluye las `lenta`) |
+| **Estimated runtime** | Suite rápida **2–4 min** · Suite completa ~15 min (incluye las `lenta`) |
 
 ---
 
@@ -37,34 +39,51 @@ created: 2026-07-25
 - **Después de cada wave:** suite rápida completa + prueba de entorno aislado + inventario de licencias
 - **Antes de `/gsd-verify-work`:** suite completa **incluidas las `lenta`** (frescura de 10 minutos, 20 repeticiones de muerte del proceso) en verde
 - **Tanda programada (D-53):** las `lenta` abren un asunto al fallar, no traban la fusión
-- **Max feedback latency:** 90 s (suite rápida). El único test que domina esa cifra es `test_frescura_acotada` (60 s), y es deliberado: medir acumulación de buffers reales exige tiempo real.
+- **Max feedback latency:** **4 minutos** (suite rápida). El presupuesto honesto, desglosado: `test_frescura_acotada` 60 s —deliberado, medir acumulación de buffers reales exige tiempo real— más las pruebas de concurrencia (~3 s), Argon2id a ~201 ms por hash en varias pruebas de `01-09`, y la suite de solo-lectura de `01-10` con su piso deliberado de >50 ms. La anti-vacuidad de la cola (`test_la_prueba_de_frescura_detecta_la_cola`, ~20 s) se movió a `lenta` porque su valor es demostrativo, no de regresión continua.
 
 ---
 
 ## Per-Task Verification Map
 
-> Los IDs de tarea se completan cuando el planner emita los PLAN.md. Hasta entonces, el mapa se
-> ancla a nivel de requisito — es el contrato que cada tarea debe heredar.
+> Mapa completado el 2026-07-26 contra los 10 planes reales. La columna **Plan** y la columna
+> **Wave** son firmes: salen del frontmatter de cada PLAN.md. El número de tarea dentro del plan se
+> confirma al ejecutar —varios planes ganaron tareas durante la revisión— por eso se anota como
+> `01-0N·T?` cuando el requisito se cubre a lo largo de varias tareas del mismo plan.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | 0 | NUC-01 | — | El dominio no importa cv2/onnxruntime/PySide6 (estático) | arquitectura | `uv run lint-imports --no-cache` | ❌ W0 | ⬜ pending |
-| TBD | TBD | 0 | NUC-01 | — | El dominio se importa entero sin esos paquetes instalados | arquitectura | `uv run --isolated --no-project python tests/arquitectura/test_dominio_aislado.py` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | NUC-04 | — | Todo puerto de salida tiene doble; el sistema corre sin hardware | contrato | `uv run pytest tests/contrato -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | NUC-04 | — | Los cuatro datos feos existen y se ejercitan | contrato | `uv run pytest tests/contrato/test_datos_feos.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | NUC-05 | T-01 (manipulación de evidencia) | Estado + evidencia + outbox en una sola transacción | integración | `uv run pytest tests/integracion/test_transaccion_unica.py -x -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | NUC-06 | — | La bitácora rota archivos y respeta el nivel configurado | unit | `uv run pytest tests/integracion/test_bitacora.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | CAP-03 | — | La fuente de archivo entrega frames en los dos modos | integración | `uv run pytest tests/integracion/test_fuente_archivo.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | CAP-04 | — | La antigüedad del frame no crece; los descartes se cuentan | integración | `uv run pytest tests/integracion/test_frescura.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | CAP-04 | — | Frescura sostenida durante 10 minutos | integración (`lenta`) | `uv run pytest tests/integracion/test_frescura.py -m lenta -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | EVI-05 | T-01 | La huella se calcula en ingesta y se persiste | unit | `uv run pytest tests/dominio/test_huella.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | EVI-05 | T-01 | Recalcular reproduce el valor; un byte alterado lo rompe | integración | `uv run pytest tests/integracion/test_verificacion_huella.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | EVI-06 | T-02 (path traversal) | La imagen va al filesystem; la base sólo metadatos y ruta relativa | integración | `uv run pytest tests/integracion/test_almacen_evidencia.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | VIA-05 | — | Viaje con 3 remitos y remito repartido en 2 viajes | integración | `uv run pytest tests/integracion/test_esquema_viaje_remito.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | INT-04 | T-03 (escritura a sistema externo) | Ningún adaptador emite verbos ni sentencias de escritura | arquitectura | `uv run pytest tests/arquitectura/test_adaptadores_son_solo_lectura.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | INT-05 | T-04 (secretos en payload) | El payload crudo se persiste con petición, instante, código y duración | integración | `uv run pytest tests/integracion/test_payload_crudo.py -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DIS-05 | — | La migración preserva datos, incluidos los casos feos | migración | `uv run pytest tests/migracion -q` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DIS-06 | T-02 | Todo funciona en ruta con espacios y acentos | integración | `uv run pytest -q -k "acentos"` (fixture de sesión aplicada a toda la suite) | ❌ W0 | ⬜ pending |
+| 01-01·T3 | 01-01 | 1 | NUC-01 | — | El dominio no importa cv2/onnxruntime/PySide6 (estático) | arquitectura | `uv run lint-imports --no-cache` | ❌ W0 | ⬜ pending |
+| 01-01·T2 | 01-01 | 1 | NUC-01 | — | El dominio se importa entero sin esos paquetes instalados | arquitectura | `uv run --python 3.12 --isolated --no-project python tests/arquitectura/sonda_dominio_aislado.py` | ❌ W0 | ⬜ pending |
+| 01-02·T? | 01-02 | 2 | NUC-01 | — | El dominio permanece limpio al crecer (entidades, reloj, manifiesto) | arquitectura | `uv run lint-imports --no-cache` | ❌ W0 | ⬜ pending |
+| 01-08·T? | 01-08 | 4 | NUC-04 | — | Todo puerto de salida tiene doble; el sistema corre sin hardware | contrato | `uv run pytest tests/contrato -q` | ❌ W0 | ⬜ pending |
+| 01-08·T? | 01-08 | 4 | NUC-04 | — | Los cuatro datos feos existen y se ejercitan | contrato | `uv run pytest tests/contrato/test_datos_feos.py -q` | ❌ W0 | ⬜ pending |
+| 01-08·T3 | 01-08 | 4 | NUC-04 | — | **Anti-vacuidad:** la suite corre con la red bloqueada (`socket` que explota) | contrato | `uv run pytest tests/contrato -q` | ❌ W0 | ⬜ pending |
+| 01-10·T3 | 01-10 | 5 | NUC-04 | — | Cassette real de PALJET y de la balanza (`origen: "real"`) | manual | — (`autonomous: false`, requiere credenciales) | ❌ W0 | ⬜ pending |
+| 01-07·T? | 01-07 | 4 | NUC-05 | T-01 | Estado + evidencia + outbox en una sola transacción | integración | `uv run pytest tests/integracion/test_transaccion_unica.py -x -q` | ❌ W0 | ⬜ pending |
+| 01-07·T3 | 01-07 | 4 | NUC-05 | T-01 | **Modo A** — corte lógico con `monkeypatch` sobre `confirmar` | integración | `uv run pytest tests/integracion/test_transaccion_unica.py -x -q` | ❌ W0 | ⬜ pending |
+| 01-07·T3 | 01-07 | 4 | NUC-05 | T-01 | **Modo B** — muerte del proceso, 20 repeticiones con punto desplazado ±50 ms | integración (`lenta`) | `uv run pytest tests/lentas -m lenta -q` | ❌ W0 | ⬜ pending |
+| 01-09·T? | 01-09 | 5 | NUC-05 | — | Autoría y matriz de permisos dentro de la misma transacción | integración | `uv run pytest tests/integracion -q -k "autoria"` | ❌ W0 | ⬜ pending |
+| 01-06·T? | 01-06 | 3 | NUC-06 | — | La bitácora rota archivos y respeta el nivel configurado | unit | `uv run pytest tests/integracion/test_bitacora.py -q` | ❌ W0 | ⬜ pending |
+| 01-07·T2 | 01-07 | 4 | NUC-06 | — | **Cableado:** tras `porteria capturar` existe `porteria.log` con ≥1 línea | integración | `uv run pytest tests/integracion/test_cableado_de_arranque.py -q` | ❌ W0 | ⬜ pending |
+| 01-03·T? | 01-03 | 2 | CAP-03 | — | La fuente de archivo entrega frames en los dos modos | integración | `uv run pytest tests/integracion/test_fuente_archivo.py -q` | ❌ W0 | ⬜ pending |
+| 01-03·T3 | 01-03 | 2 | CAP-04 | — | La antigüedad del frame no crece; los descartes se cuentan (60 s, bloqueante) | integración | `uv run pytest tests/integracion/test_frescura.py -q -m "not lenta"` | ❌ W0 | ⬜ pending |
+| 01-03·T3 | 01-03 | 2 | CAP-04 | — | Frescura sostenida durante 10 minutos | integración (`lenta`) | `uv run pytest tests/integracion/test_frescura.py -m lenta -q` | ❌ W0 | ⬜ pending |
+| 01-03·T3 | 01-03 | 2 | CAP-04 | — | **Anti-vacuidad:** cero descartes con consumidor lento es un fallo | integración | `uv run pytest tests/integracion/test_frescura.py tests/integracion/test_frescura_anti_vacuidad.py -q -m "not lenta"` | ❌ W0 | ⬜ pending |
+| 01-02·T? | 01-02 | 2 | EVI-05 | T-01 | La huella se calcula en ingesta y se persiste | unit | `uv run pytest tests/dominio/test_huella.py -q` | ❌ W0 | ⬜ pending |
+| 01-04·T2 | 01-04 | 3 | EVI-05 | T-01 | **Anti-vacuidad:** un byte alterado en 3 posiciones (primera, media, última) rompe la verificación | integración | `uv run pytest tests/integracion/test_verificacion_huella.py -q` | ❌ W0 | ⬜ pending |
+| 01-04·T? | 01-04 | 3 | EVI-06 | T-02 | La imagen va al filesystem; la base sólo metadatos y ruta relativa | integración | `uv run pytest tests/integracion/test_almacen_evidencia.py -q` | ❌ W0 | ⬜ pending |
+| 01-07·T? | 01-07 | 4 | EVI-06 | T-01-27 | Contenido duplicado: **1 archivo, 2 filas, ambas verificables** | integración | `uv run pytest tests/integracion/test_contenido_duplicado.py -q` | ❌ W0 | ⬜ pending |
+| 01-02·T? | 01-02 | 2 | VIA-05 | — | Viaje↔Remito N:M y peso teórico nulo en el dominio | unit | `uv run pytest tests/dominio -q` | ❌ W0 | ⬜ pending |
+| 01-05·T? | 01-05 | 3 | VIA-05 | — | Viaje con 3 remitos y remito repartido en 2 viajes, en el esquema | integración | `uv run pytest tests/integracion/test_esquema_viaje_remito.py -q` | ❌ W0 | ⬜ pending |
+| 01-10·T2 | 01-10 | 5 | INT-04 | T-03 | Ningún adaptador emite verbos ni sentencias de escritura | arquitectura | `uv run pytest tests/arquitectura/test_adaptadores_son_solo_lectura.py -q` | ❌ W0 | ⬜ pending |
+| 01-10·T2 | 01-10 | 5 | INT-04 | T-03 | **Anti-vacuidad:** falla si el conjunto de adaptadores inspeccionados está vacío | arquitectura | `uv run pytest tests/arquitectura/test_adaptadores_son_solo_lectura.py -q` | ❌ W0 | ⬜ pending |
+| 01-05·T1 | 01-05 | 3 | INT-05 | T-01-04 | `payload_crudo` tiene las 12 columnas, con `anonimizado` NOT NULL y sin default | integración | `uv run pytest tests/integracion/test_esquema_payload_crudo.py -q` | ❌ W0 | ⬜ pending |
+| 01-10·T1 | 01-10 | 5 | INT-05 | T-04 | El payload crudo se persiste con petición, instante, código y duración | integración | `uv run pytest tests/integracion/test_payload_crudo.py -q` | ❌ W0 | ⬜ pending |
+| 01-10·T2 | 01-10 | 5 | INT-05 | T-04 | **Cobertura:** cada adaptador descubierto graba — `payload_crudo` crece en 1 por consulta | integración | `uv run pytest tests/integracion/test_payload_crudo.py -q` | ❌ W0 | ⬜ pending |
+| 01-05·T3 | 01-05 | 3 | DIS-05 | — | La migración preserva datos fila por fila, incluidos los casos feos | migración | `uv run pytest tests/migracion -q` | ❌ W0 | ⬜ pending |
+| 01-05·T3 | 01-05 | 3 | DIS-05 | — | **Caso adverso:** una migración que perdería datos falla la prueba | migración | `uv run pytest tests/migracion -q` | ❌ W0 | ⬜ pending |
+| 01-01·T2 | 01-01 | 1 | DIS-06 | T-02 | Toda la suite corre bajo ruta con espacios y acentos (fixture de sesión `autouse`) | integración | `uv run pytest -q -m "not lenta"` | ❌ W0 | ⬜ pending |
+| 01-01·T2 | 01-01 | 1 | DIS-06 | — | **Anti-vacuidad:** `pytest_sessionfinish` falla si `testscollected == 0`; prohibido `pytest.skip` de sesión | integración | `uv run pytest -q -m "not lenta"` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -115,7 +134,8 @@ Son tareas propias, no notas al pie:
 ## Wave 0 Requirements
 
 - [ ] `pyproject.toml` — `[tool.pytest.ini_options]` con `markers = ["lenta: ..."]`, `testpaths`, `pythonpath`
-- [ ] `pyproject.toml` — `[tool.importlinter]` con los tres contratos de RESEARCH § Patrón 1 — cubre NUC-01, D-47
+- [ ] `pyproject.toml` — `[tool.importlinter]` con los **cuatro** contratos: los tres de RESEARCH § Patrón 1 más `sin_deserializacion_insegura` que agregaron los planes — cubre NUC-01, D-47
+- [ ] `tests/arquitectura/test_invariantes_de_codigo.py` + `tests/arquitectura/invariantes/inv_01_0N.py` (uno por plan) — reemplaza todo criterio basado en `grep`, inverificable en Windows (D-54)
 - [ ] `pyproject.toml` — `[dependency-groups]` con el grupo `dominio` aislado — cubre D-52
 - [ ] `tests/conftest.py` — fixture de sesión con ruta con espacios y acentos (DIS-06), fixture de motor SQLite, fixture de reloj determinista
 - [ ] `tests/arquitectura/test_dominio_aislado.py` + su script de subproceso — NUC-01
@@ -140,12 +160,14 @@ Son tareas propias, no notas al pie:
 
 ## Validation Sign-Off
 
-- [ ] Todas las tareas tienen verify `<automated>` o dependencia declarada de Wave 0
-- [ ] Continuidad de muestreo: no hay 3 tareas consecutivas sin verify automatizado
-- [ ] Wave 0 cubre todas las referencias MISSING
-- [ ] Sin flags de watch-mode
-- [ ] Feedback latency < 90 s en la suite rápida
-- [ ] Las tres pruebas-de-la-prueba (NUC-01, NUC-04, INT-04) están planificadas como tareas propias
-- [ ] `nyquist_compliant: true` seteado en el frontmatter
+- [x] Todas las tareas tienen verify `<automated>` o dependencia declarada de Wave 0
+- [x] Continuidad de muestreo: no hay 3 tareas consecutivas sin verify automatizado
+- [x] Wave 0 cubre todas las referencias MISSING
+- [x] Sin flags de watch-mode
+- [x] Feedback latency declarada honestamente (4 min en la suite rápida, no 90 s)
+- [x] Las **cinco** pruebas-de-la-prueba están planificadas como tareas propias: NUC-01 (`01-01·T3`, sabotaje `import cv2`), NUC-04 (`01-08·T3`, red bloqueada), INT-04 (`01-10·T2`, anti-vacuidad del conjunto de adaptadores), EVI-05 (`01-04·T2`, byte alterado en tres posiciones), CAP-04 (`01-03·T3`, cero descartes es fallo)
+- [x] Ningún criterio de aceptación depende de `grep` — todos migrados a invariantes de pytest
+- [x] `nyquist_compliant: true` seteado en el frontmatter
+- [ ] `wave_0_complete: true` — **pendiente hasta que la ola 0 se ejecute**
 
-**Approval:** pending
+**Approval:** approved 2026-07-26 (planificación). La ola 0 todavía no corrió: `wave_0_complete` sigue en `false` a propósito.

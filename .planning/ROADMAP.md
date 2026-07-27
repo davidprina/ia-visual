@@ -45,7 +45,33 @@ Las fases decimales aparecen entre sus enteros vecinos en orden numérico.
   6. La aplicación opera con la base y el almacén de evidencia en una ruta con espacios y acentos, y una migración de Alembic sobre una base con datos preexistentes los preserva íntegros.
 **Pitfalls que ataca**: 1 (contrato de frescura del frame), 2 (modelo de reloj monotónico/UTC y desvío), 14 (escritura atómica y hash), 16 (descubrimiento de contratos, no implementación), 18 (persistencia transaccional con WAL)
 **Decisiones no retrofiteables que se fijan acá**: huella SHA-256 en ingesta · relación Viaje↔Remito muchos-a-muchos · peso teórico admitiendo nulo · contrato de frescura del frame (slot de tamaño 1, descarte del más viejo) · reloj único del proceso y desvío por cámara · payload crudo persistido
-**Plans**: TBD
+**Plans**: 10 planes en 5 olas · Walking Skeleton en `SKELETON.md` · modo MVP (rebanadas verticales)
+
+**Ola 1** *(sin dependencias — habilita todo lo demás)*
+- `01-01` — Proyecto uv, árbol de paquetes y las cuatro compuertas: import-linter, sonda de aislamiento del dominio, invariantes de código y ruta con espacios y acentos
+
+**Ola 2** *(bloqueada por la ola 1)*
+- `01-02` — Vocabulario común del dominio, reloj del proceso y manifiesto con huella
+- `01-03` — Slot de capacidad 1 con descarte del más viejo, métricas por fuente y el puerto `FuenteDeVideo`
+
+**Ola 3** *(bloqueada por la ola 2)*
+- `01-04` — Escritura atómica con huella SHA-256 y verificación, en el idioma de Windows
+- `01-05` — Motor SQLite con PRAGMAs verificados, esquema no retrofiteable y migraciones Alembic
+- `01-06` — Bitácora técnica estructurada con rotación, nivel configurable y configuración en base
+
+**Ola 4** *(bloqueada por la ola 3)*
+- `01-07` — Unidad de trabajo, repositorios, outbox y el composition root que cablea todo
+- `01-08` — Puertos de salida dictados por el dominio y los dos juegos de datos deliberadamente feos
+
+**Ola 5** *(bloqueada por la ola 4)*
+- `01-09` — Usuario, cuatro roles fijos, matriz de permisos aislada y autoría en la transacción
+- `01-10` — Transporte inyectado, triple barrera de solo lectura, grabador con anonimizador y cassettes ⚠️ `autonomous: false` (requiere credenciales de PALJET y de la balanza)
+
+**Restricciones transversales** *(citadas por 2 o más planes)*
+- Toda la suite corre bajo una ruta con espacios y acentos; prohibido `pytest.skip` de sesión, y `pytest_sessionfinish` falla si se recolectaron 0 pruebas
+- Ningún criterio de aceptación depende de `grep`: las invariantes de código son aserciones de pytest, porque Windows es la única plataforma de compuerta (D-54)
+- Acceso de **solo lectura** a sistemas externos (GET y SELECT); el contrato `sin_conexion_cruda` no admite excepciones
+- Reloj único del proceso: `time.monotonic_ns()` para deltas y antigüedad, `datetime.now(timezone.utc)` para el sello persistido
 
 ### Phase 2: Ingesta multi-fuente robusta y visor que no miente
 **Goal**: El operador abre la aplicación y ve en vivo las cámaras IP, la webcam USB y los archivos de video en el layout que elija, y el estado que muestra cada panel es cierto: una fuente caída se declara caída en menos de quince segundos, se reconecta sola y nunca arrastra a las demás.

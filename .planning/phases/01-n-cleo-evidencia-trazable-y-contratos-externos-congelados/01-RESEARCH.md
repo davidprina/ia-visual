@@ -1334,32 +1334,43 @@ Ver Patrón 7. `perf_counter_ns` para deltas, `datetime.now(timezone.utc)` sólo
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **Estado al cerrar la planificación de la Fase 1 (2026-07-26).** Las cinco preguntas quedaron
+> resueltas por los planes `01-01` … `01-10`. Cada una lleva abajo su línea `**Resolución:**` con el
+> plan que la cierra. Q1 y Q2 se cierran *con deuda declarada* mientras no haya acceso a PALJET ni a
+> la balanza — eso es exactamente lo que habilita D-43, y `01-10` lo reporta como tal en vez de
+> fingir que el contrato se congeló.
 
 1. **¿PALJET habla HTTP, SQL directo, o ambos — y qué dato viene por cada camino?**
    - Lo que sabemos: D-44 dice explícitamente "los dos caminos según el dato", y que el descubrimiento debe documentar cuál viene por cuál. `STATE.md` registra que la documentación existe y el usuario la tiene, pero no se leyó.
    - Lo que falta: el reparto concreto. De él depende si `vcrpy` entra al stack (A8) y si el cassette propio necesita cubrir SQL.
    - Recomendación: **hacer que la primera tarea de la fase sea leer esa documentación**, antes de fijar dependencias. Si no hay acceso, D-43 aplica: se implementan las dos vías del Patrón 8, la lista de dependencias incluye vcrpy provisionalmente, y la deuda queda registrada con responsable y fecha.
+   - **Resolución (plan `01-10`, con deuda declarada):** se implementan las dos vías. El transporte HTTP quedó decidido en `01-01` — `urllib.request` de la stdlib envuelto en `porteria.composicion.transporte_externo` e inyectado, **sin agregar ninguna dependencia HTTP** ni `vcrpy`: el cassette es propio y cubre los dos caminos. La tarea del GET real es `autonomous: false` porque necesita credenciales que hoy no existen. Mientras el cassette tenga `origen: "sintetico"`, el Criterio de Éxito 4 se cierra como **cumplido con deuda declarada**, y `VERIFICATION.md` debe decirlo textualmente.
 
 2. **¿Con qué credencial se va a consultar PALJET, y tiene sólo `SELECT`?**
    - Lo que sabemos: la regla global del usuario y INT-04 exigen solo lectura; el Patrón 8 implementa dos barreras de código.
    - Lo que falta: la tercera barrera, que es la única real — un usuario de base con `GRANT SELECT` y nada más, otorgado por el DBA del cliente.
    - Recomendación: tarea explícita de solicitud por escrito, y que el documento de contratos congelados registre qué permisos tiene la credencial efectivamente usada. Sin eso, la afirmación "el sistema no puede escribir en el ERP" es una promesa de código, no una garantía.
+   - **Resolución (plan `01-10`, con deuda declarada):** las dos barreras de código quedan planificadas y verificadas — el contrato `sin_conexion_cruda` de import-linter y la prueba de arquitectura de INT-04 con su aserción anti-vacuidad, que falla si el conjunto de adaptadores inspeccionados está vacío. La tercera barrera (el `GRANT SELECT` otorgado por el DBA del cliente) **no es código y sigue abierta**: queda como tarea `autonomous: false` con solicitud por escrito. La honestidad que exige esta pregunta se preserva: la Fase 1 entrega la promesa de código, no la garantía del permiso.
 
 3. **¿La incertidumbre de ~15 ms en el sello UTC absoluto es aceptable para la auditoría?**
    - Lo que sabemos: el desvío **relativo** entre cámaras es preciso a microsegundos; el sello **absoluto** hereda la resolución de `GetSystemTimeAsFileTime` (15,6 ms en 3.12).
    - Lo que falta: si alguna vez alguien va a comparar el sello de una foto contra un registro externo (el ticket de la balanza, un log del ERP) con precisión de milisegundos.
    - Recomendación: persistir ambos (`capturado_en_utc_iso` derivado del ancla, con precisión de microsegundos en el texto, e `instante_monotono_ns` crudo) y documentar la incertidumbre real en el manifiesto de exportación de EVI-08. Convierte un supuesto silencioso en un dato auditable, que es la misma jugada que D-39 hace con la ventana de ±150 ms.
+   - **Resolución (plan `01-02`, cerrada):** se adoptó la recomendación y se adelantó de EVI-08 a la Fase 1, porque el manifiesto es contrato no retrofiteable. `Reloj.incertidumbre_sello_ms()` mide la resolución real del reloj de pared con `time.get_clock_info("time").resolution` —**no se cablea como constante**, se mide en el equipo donde corre— y `Manifiesto.incertidumbre_sello_utc_ms` la persiste **entrando en el hash**. Se agregó además una prueba de guardia que falla si `time.get_clock_info("perf_counter").resolution > 1e-6`, es decir si la plataforma no alcanza para medir la ventana de ±150 ms. La pregunta de auditoría ("¿es aceptable?") deja de necesitar respuesta anticipada: el dato queda declarado y quien audite decide con él a la vista.
 
 4. **¿Los cuatro roles fijos de D-20 resisten el contacto con Logística, Compras y Administración?**
    - Lo que sabemos: D-20 los declara fijos y con permisos en código; el rol de Compras es necesario para la prueba de solo-lectura de la Fase 9.
    - Lo que falta: validación con los usuarios indirectos, que todavía no participaron.
    - Recomendación: congelar los 4 roles ahora (el costo de agregar uno es una migración barata) pero **no** congelar la matriz de permisos; dejarla en un módulo de dominio aislado y con pruebas propias, para que evolucione sin tocar el esquema.
+   - **Resolución (plan `01-09`, cerrada):** se adoptó la recomendación tal cual. Los cuatro roles se congelan en el esquema; la matriz de permisos vive en un módulo de dominio aislado con su propia matriz de pruebas, de modo que la validación pendiente con Logística, Compras y Administración pueda cambiar permisos sin una migración. Agregar un quinto rol sigue siendo una migración barata.
 
 5. **¿Existe ya el video de referencia para las pruebas de CAP-03 y CAP-04?**
    - Lo que sabemos: D-58 y D-59 fijan cómo se obtienen (filmados en la portería real, recortes cortos versionados). `code_context` de CONTEXT.md dice que el repositorio no tiene código todavía.
    - Lo que falta: el material y el acuerdo escrito con el cliente.
    - Recomendación: la fase **no debe bloquearse** por esto. Las pruebas de frescura se pueden correr sobre un video sintético generado con `cv2.VideoWriter` —así se hizo en esta investigación, y midió perfectamente el crecimiento de latencia— porque lo que se verifica es el comportamiento de la cañería, no el contenido de la imagen. El material real se incorpora cuando exista, para las Fases 4 y 5.
+   - **Resolución (plan `01-01`, cerrada):** la fase no se bloquea. La fixture de sesión `video_sintetico` genera con `cv2.VideoWriter` un archivo de 320×240 a 25 fps y ~30 s bajo la raíz de pruebas, y **se genera, no se versiona** (D-59). Es exactamente el material con el que esta investigación midió el crecimiento de latencia, así que la frescura se verifica sobre el comportamiento de la cañería y no sobre el contenido de la imagen. El material real de la portería llega en las Fases 4 y 5.
 
 ---
 
