@@ -21,6 +21,7 @@ import pytest
 from sqlalchemy import text
 
 from tests import conftest
+from tests.arquitectura.lectura_de_codigo import codigo_sin_prosa
 
 RAIZ_REPO = Path(__file__).resolve().parents[2]
 
@@ -214,11 +215,14 @@ def test_el_video_sintetico_se_abre_con_el_backend_ffmpeg(video_sintetico: Path)
 
 
 def test_el_conftest_no_puede_saltar_la_sesion() -> None:
-    """`pytest.skip` en la resolución de la ruta convertiría la compuerta en un adorno."""
+    """`pytest.skip` en la resolución de la ruta convertiría la compuerta en un adorno.
+
+    Se mide sobre el código sin prosa: el propio `conftest.py` explica en su docstring
+    por qué no usa `tmp_path_factory`, y esa explicación no puede invalidar la
+    invariante que la sostiene.
+    """
     fuente = (RAIZ_REPO / "tests" / "conftest.py").read_text(encoding="utf-8")
-    codigo = "\n".join(
-        linea for linea in fuente.splitlines() if not linea.lstrip().startswith("#")
-    )
+    codigo = codigo_sin_prosa(fuente)
 
     assert not re.search(r"pytest\.skip\s*\(", codigo), (
         "tests/conftest.py llama a pytest.skip. Un skip de alcance de sesión hace que "
