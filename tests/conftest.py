@@ -32,6 +32,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 
+from porteria.infraestructura.runtime.reloj import RelojFijo
+
 # --------------------------------------------------------------------------- #
 # Constantes de la ruta hostil (DIS-06)
 # --------------------------------------------------------------------------- #
@@ -252,36 +254,19 @@ def motor_sqlite(ruta_hostil: RutaHostil) -> Engine:
             Path(f"{ruta_hostil.ruta_db}{sufijo}").unlink(missing_ok=True)
 
 
-class RelojDeterminista:
-    """Doble del puerto `Reloj`: el instante lo decide la prueba, no el sistema.
-
-    Trabaja en nanosegundos, igual que `time.perf_counter_ns()`, para que ninguna
-    prueba de dominio herede la resolución de 15,6 ms de `time.monotonic()` en
-    Windows (Pitfall 1) ni dependa del reloj real.
-    """
-
-    def __init__(self, inicial_ns: int = 0) -> None:
-        self._ahora_ns = inicial_ns
-
-    def instante_ns(self) -> int:
-        """El instante monotónico actual, en nanosegundos."""
-        return self._ahora_ns
-
-    def fijar_ns(self, instante_ns: int) -> int:
-        """Fija el instante de forma absoluta."""
-        self._ahora_ns = instante_ns
-        return self._ahora_ns
-
-    def avanzar_ms(self, milisegundos: float) -> int:
-        """Adelanta el reloj los milisegundos pedidos y devuelve el instante nuevo."""
-        self._ahora_ns += int(milisegundos * 1_000_000)
-        return self._ahora_ns
+#: Doble del puerto `Reloj`, y **el mismo objeto que el producto expone** en
+#: `porteria.infraestructura.runtime.reloj`. El plan 01-01 declaró acá una clase propia
+#: porque el reloj todavía no existía; el 01-02 la reemplaza por un alias en vez de
+#: mantener dos dobles en paralelo. Si fueran dos, el de las pruebas podría dejar de
+#: cumplir el puerto sin que nada lo delate, y las pruebas de dominio estarían
+#: verificando un contrato que la aplicación no usa.
+RelojDeterminista = RelojFijo
 
 
 @pytest.fixture
-def reloj_determinista() -> RelojDeterminista:
+def reloj_determinista() -> RelojFijo:
     """Reloj controlado por la prueba: cero dependencia del reloj real."""
-    return RelojDeterminista()
+    return RelojFijo()
 
 
 def _codec_mp4v() -> int:
