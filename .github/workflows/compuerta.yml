@@ -1,0 +1,100 @@
+name: compuerta
+
+# D-54: la compuerta corre sobre Windows como UNICA plataforma. Rutas con espacios y
+# acentos, nombres de usuario con enie, comportamiento del sistema de archivos y
+# renombrado atomico se comportan distinto ahi, y el criterio de exito 6 exige
+# demostrarlo en la plataforma de destino.
+#
+# D-53: la compuerta rapida bloquea la fusion; la tanda lenta corre por agenda y NO es
+# un check requerido. Una compuerta lenta es una compuerta que se termina salteando.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  schedule:
+    # Tanda lenta diaria, 03:15 UTC (00:15 en Argentina).
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compuerta-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Cinturon adicional al reconfigure del punto de entrada: la consola del runner es
+  # cp1252 y la salida de la compuerta esta en espanol.
+  PYTHONUTF8: "1"
+  # Base explicita de la ruta hostil de la suite, para no depender de la heuristica de
+  # candidatos del conftest. Tiene que ser corta: MAX_PATH esta activo.
+  PORTERIA_RAIZ_PRUEBAS: 'C:\p'
+
+jobs:
+  # ESTE es el check que la proteccion de rama tiene que exigir.
+  compuerta:
+    name: compuerta (rapida, bloqueante)
+    if: github.event_name != 'schedule'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Fijar Python 3.12
+        run: uv python install 3.12
+
+      - name: Sincronizar el entorno
+        run: uv sync
+
+      - name: Correr las cuatro compuertas
+        run: uv run python scripts/compuerta.py --json
+
+  # NO agregar este job a los checks requeridos de la proteccion de rama (D-53): su
+  # falla abre un asunto, no traba la fusion.
+  tanda-lenta:
+    name: tanda lenta (agendada, no bloqueante)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Fijar Python 3.12
+        run: uv python install 3.12
+
+      - name: Sincronizar el entorno
+        run: uv sync
+
+      # Dos situaciones distintas que no hay que confundir:
+      #
+      #  - En la compuerta bloqueante, "cero pruebas recolectadas" es un FALLO: la
+      #    compuerta no midio nada y estaria pasando en verde por omision.
+      #  - Aca, "cero pruebas marcadas lenta" es un hecho verdadero y esperado hasta que
+      #    el plan 01-03 agregue la primera. Fallar por eso entrenaria a todos a ignorar
+      #    la tanda nocturna, que es justo lo que D-53 quiere evitar.
+      #
+      # El `pytest_sessionfinish` de tests/conftest.py fuerza exit 1 ante recoleccion
+      # vacia, asi que la distincion se hace por su mensaje y no por el codigo de salida.
+      - name: Correr las pruebas de larga duracion
+        shell: pwsh
+        run: |
+          $salida = & uv run pytest -q -m lenta 2>&1 | Out-String
+          $codigo = $LASTEXITCODE
+          Write-Output $salida
+          if ($salida -match 'ninguna prueba') {
+            Write-Output '::notice::Todavia no hay pruebas marcadas lenta; las agrega el plan 01-03. Nada que correr.'
+            exit 0
+          }
+          exit $codigo
