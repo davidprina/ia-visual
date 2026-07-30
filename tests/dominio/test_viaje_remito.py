@@ -47,7 +47,10 @@ def remito(numero: str, *articulos: Articulo) -> Remito:
 
 
 def viaje(numero_legible: str = "2026-001842") -> Viaje:
-    return Viaje(id=ViajeId(f"viaje-{numero_legible}"), numero_legible=NumeroLegible(numero_legible))
+    return Viaje(
+        id=ViajeId(f"viaje-{numero_legible}"),
+        numero_legible=NumeroLegible(numero_legible),
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -87,6 +90,30 @@ def test_la_relacion_se_mantiene_en_los_dos_sentidos() -> None:
 
     assert unico.viajes == [uno]
     assert uno.remitos == [unico]
+
+
+def test_comparar_dos_remitos_equivalentes_no_recursa_por_la_relacion() -> None:
+    """Regresión de un defecto latente que la relación bidireccional hace fácil de escribir.
+
+    Con la comparación campo por campo que genera `dataclass`, comparar dos remitos
+    equivalentes recorre `Remito.viajes → Viaje.remitos → Remito.viajes` y revienta con
+    `RecursionError`. `list.__contains__` lo tapa mientras se trate del **mismo** objeto,
+    porque prueba identidad antes de igualdad — así que el defecto no aparece hasta el
+    primer remito reconstruido desde la base, en el plan 01-05.
+
+    La igualdad de estas dos entidades es por identificador, que además es lo que el negocio
+    entiende: dos remitos con el mismo número son el mismo remito.
+    """
+    uno = viaje("2026-000001")
+    otro = viaje("2026-000002")
+    primero = remito("R-1", articulo("ART-1", 10.0))
+    segundo = remito("R-1", articulo("ART-1", 10.0))
+    uno.vincular_remito(primero)
+    otro.vincular_remito(segundo)
+
+    assert primero == segundo
+    assert uno != otro
+    assert len({primero, segundo}) == 1
 
 
 def test_vincular_dos_veces_el_mismo_remito_no_lo_duplica() -> None:
