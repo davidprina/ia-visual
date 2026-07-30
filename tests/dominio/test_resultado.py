@@ -264,10 +264,14 @@ def test_las_tres_variantes_se_consumen_con_match() -> None:
     assert describir(NoDisponible("sin PALJET")) == "ausente:sin PALJET"
 
 
-@pytest.mark.parametrize("variante", [Ok(1), NoDisponible("x"), Degradado(1, "x", 2.0)])
-def test_las_variantes_son_inmutables(variante: object) -> None:
+@pytest.mark.parametrize(
+    ("variante", "campo"),
+    [(Ok(1), "valor"), (NoDisponible("x"), "motivo"), (Degradado(1, "x", 2.0), "valor")],
+)
+def test_las_variantes_son_inmutables(variante: object, campo: str) -> None:
+    """Un resultado que se puede editar después de producido deja de ser una respuesta."""
     with pytest.raises(dataclasses.FrozenInstanceError):
-        variante.motivo = "otro"  # type: ignore[attr-defined]
+        setattr(variante, campo, "otro")
 
 
 # --------------------------------------------------------------------------- #

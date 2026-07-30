@@ -66,21 +66,59 @@ def test_el_reloj_del_proceso_no_usa_el_reloj_de_pared_para_medir() -> None:
     )
 
 
-def test_dos_llamadas_consecutivas_siempre_devuelven_valores_distintos() -> None:
-    """100 de 100: con paso de 100 ns, dos llamadas de Python nunca coinciden."""
-    reloj = RelojDelProceso()
-    repetidos = [
-        (primero, segundo)
-        for primero, segundo in (
-            (reloj.instante(), reloj.instante()) for _ in range(REPETICIONES_DE_MONOTONIA)
-        )
-        if primero == segundo
-    ]
+def _trabajo_breve() -> int:
+    """Unos microsegundos de trabajo real, medidos por nada más que sí mismos.
 
-    assert not repetidos, (
-        f"{len(repetidos)} de {REPETICIONES_DE_MONOTONIA} pares consecutivos "
-        "devolvieron el mismo instante. Señal de alerta de Pitfall 1: el reloj tiene "
-        "menos resolución de la que declara."
+    Deliberadamente **no** se espera consultando el reloj: un bucle que gira hasta que el
+    reloj avanza demuestra que el reloj avanza porque el bucle lo esperó, que es una
+    prueba circular. Acá se hace una cantidad fija de trabajo y después se le pregunta al
+    reloj si lo notó.
+    """
+    return sum(range(200))
+
+
+def test_el_reloj_distingue_dos_eventos_separados_por_microsegundos() -> None:
+    """100 de 100: unos pocos microsegundos de trabajo siempre se notan.
+
+    Es la propiedad que la ventana de ±150 ms necesita. Con `time.monotonic()` y su paso
+    de 15,625 ms esto fallaría las 100 veces.
+    """
+    reloj = RelojDelProceso()
+    indistinguibles = []
+
+    for _ in range(REPETICIONES_DE_MONOTONIA):
+        primero = reloj.instante()
+        _trabajo_breve()
+        segundo = reloj.instante()
+        if primero == segundo:
+            indistinguibles.append(primero)
+
+    assert not indistinguibles, (
+        f"{len(indistinguibles)} de {REPETICIONES_DE_MONOTONIA} pares de eventos "
+        "separados por trabajo real devolvieron el mismo instante. Señal de alerta de "
+        "Pitfall 1: el reloj tiene menos resolución de la que declara."
+    )
+
+
+def test_el_reloj_produce_cientos_de_miles_de_instantes_distintos() -> None:
+    """La medición de RESEARCH, reproducida acá como regresión permanente.
+
+    En 300 ms `time.monotonic()` produjo **20** valores distintos y `time.perf_counter()`
+    produjo **717 804**. Se mide sobre 100 ms y se exige un piso de 50 000, que deja tres
+    órdenes de magnitud de margen contra el reloj bueno y ninguno contra el malo: si
+    alguien cambia la implementación por `monotonic`, acá se ven ~7 valores.
+    """
+    reloj = RelojDelProceso()
+    limite_ns = reloj.instante() + 100 * 1_000_000
+    distintos = set()
+
+    while (ahora := reloj.instante()) < limite_ns:
+        distintos.add(ahora)
+
+    assert len(distintos) > 50_000, (
+        f"En 100 ms el reloj produjo sólo {len(distintos)} instantes distintos. Con "
+        "`QueryPerformanceCounter` y paso de 100 ns tendrían que ser cientos de miles; "
+        "con `GetTickCount64` y paso de 15,625 ms son menos de diez."
     )
 
 
