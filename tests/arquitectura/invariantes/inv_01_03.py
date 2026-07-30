@@ -115,4 +115,29 @@ INVARIANTES: tuple[Invariante, ...] = (
             "nombra desde el día uno."
         ),
     ),
+    # --- 3. La fuente de archivo: cadencia real y backend reportado (D-16) ------ #
+    Invariante(
+        ruta="src/porteria/infraestructura/video/archivo.py",
+        modo="presente",
+        patron=r"CAP_PROP_POS_MSEC",
+        motivo=(
+            "El modo tiempo real tiene que respetar la marca temporal del contenedor. Sin "
+            "`CAP_PROP_POS_MSEC` la reproducción corre a velocidad de decodificación, la "
+            "acumulación de latencia que la prueba de frescura busca no llega a "
+            "producirse, y el Criterio de Éxito 5 pasaría en verde midiendo una cinta "
+            "acelerada. Señal de alerta: reproducir 5 s de video tarda mucho menos de 5 s "
+            "en el modo que debería respetarlos."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/video/archivo.py",
+        modo="presente",
+        patron=r"getBackendName",
+        motivo=(
+            "El backend efectivo de OpenCV se reporta, no se supone. Si mañana la rueda "
+            "viniera sin FFMPEG, el síntoma sería un archivo que no abre en la planta y "
+            "nadie sabría por qué; con el dato en la salida de `porteria probar-fuente` es "
+            "la primera pregunta del soporte remoto en vez de un misterio."
+        ),
+    ),
 )

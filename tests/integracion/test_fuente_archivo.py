@@ -168,12 +168,23 @@ def test_la_fuente_abre_una_ruta_con_espacios_y_acentos_y_reporta_el_backend(
 def test_al_terminar_el_archivo_la_fuente_no_esta_viva_y_no_lanza(
     video_de_cinco_segundos: Path,
 ) -> None:
-    """T-01-08: fin de archivo es un estado normal, no una excepción que tumbe nada."""
+    """T-01-08: fin de archivo es un estado normal, no una excepción que tumbe nada.
+
+    **El último cuadro se entrega igual, y eso es deliberado.** Terminado el archivo, el
+    cuadro que quedó en el slot es un cuadro real y hay que poder retirarlo: tirarlo
+    porque la fuente ya cerró sería perder evidencia válida justo en el borde. Lo que el
+    contrato garantiza es que la fuente **se vacía y no se repone**: la primera toma puede
+    devolver ese último cuadro y de ahí en adelante siempre `None`, sin excepción y sin
+    quedarse esperando para siempre.
+    """
     fuente = FuenteDeArchivo(video_de_cinco_segundos, modo=Modo.VELOCIDAD_MAXIMA)
     _reproducir_entera(fuente)
 
     assert fuente.esta_viva() is False
+
+    fuente.tomar_mas_reciente(PerfilDeFlujo.EVIDENCIA, timeout=0.05)  # el último cuadro
     assert fuente.tomar_mas_reciente(PerfilDeFlujo.EVIDENCIA, timeout=0.05) is None
+    assert fuente.tomar_mas_reciente(PerfilDeFlujo.MONITOREO, timeout=0.05) is None
 
 
 def test_los_dos_perfiles_devuelven_el_mismo_flujo(video_de_cinco_segundos: Path) -> None:
