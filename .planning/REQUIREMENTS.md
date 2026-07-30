@@ -9,7 +9,7 @@
 
 ### Núcleo y arquitectura (NUC)
 
-- [ ] **NUC-01**: El paquete de dominio se importa correctamente en un entorno donde OpenCV, ONNX Runtime y el toolkit de interfaz no están instalados
+- [x] **NUC-01**: El paquete de dominio se importa correctamente en un entorno donde OpenCV, ONNX Runtime y el toolkit de interfaz no están instalados
 - [ ] **NUC-02**: El núcleo expone un puerto de transporte hacia la interfaz, implementado en v1 como canal en memoria y sustituible por IPC sin modificar el dominio
 - [ ] **NUC-03**: Los mensajes entre núcleo e interfaz están definidos como contratos tipados y validados, serializables sin cambios en el dominio
 - [ ] **NUC-04**: Todos los puertos de salida (fuente de video, motor de detección, almacén de evidencia, proveedor de pesaje, proveedor de datos maestros, reloj) tienen un doble de prueba que permite ejecutar el sistema completo sin hardware ni sistemas externos
@@ -33,7 +33,7 @@
 - [ ] **EVI-02**: El sistema registra, para cada imagen capturada, su desvío temporal respecto del instante objetivo, medido contra un reloj único del proceso
 - [ ] **EVI-03**: El sistema declara una ventana de aceptación configurable y marca la captura como sincronizada o estimada según el desvío observado
 - [ ] **EVI-04**: Una captura en la que falta alguna cámara se marca explícitamente como incompleta y nunca aparenta estar completa
-- [ ] **EVI-05**: El sistema calcula la huella SHA-256 de cada imagen en el momento de la ingesta y la persiste junto a sus metadatos
+- [x] **EVI-05**: El sistema calcula la huella SHA-256 de cada imagen en el momento de la ingesta y la persiste junto a sus metadatos
 - [ ] **EVI-06**: Las imágenes se almacenan en el sistema de archivos direccionadas por su contenido, con la base de datos guardando únicamente metadatos y referencia
 - [ ] **EVI-07**: El usuario consulta las capturas históricas filtrando por fecha, patente, tipo de movimiento y estado de auditoría
 - [ ] **EVI-08**: El usuario exporta un conjunto de evidencia con un manifiesto que incluye las huellas, permitiendo verificar su integridad fuera del sistema
@@ -77,7 +77,7 @@
 - [ ] **VIA-02**: El portero selecciona un viaje precargado desde una lista filtrable
 - [ ] **VIA-03**: El sistema asocia la captura de evidencia y la lectura de peso al viaje seleccionado
 - [ ] **VIA-04**: El sistema registra la hora de liberación del viaje y su estado final
-- [ ] **VIA-05**: El sistema modela la relación entre viaje y remitos como muchos a muchos desde el diseño inicial del esquema
+- [x] **VIA-05**: El sistema modela la relación entre viaje y remitos como muchos a muchos desde el diseño inicial del esquema
 
 ### Flujo de ingreso de proveedores (ING)
 
@@ -170,7 +170,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NUC-01 | Phase 1 | Pending |
+| NUC-01 | Phase 1 | Complete |
 | NUC-02 | Phase 2 | Pending |
 | NUC-03 | Phase 2 | Pending |
 | NUC-04 | Phase 1 | Pending |
@@ -188,7 +188,7 @@
 | EVI-02 | Phase 3 | Pending |
 | EVI-03 | Phase 3 | Pending |
 | EVI-04 | Phase 3 | Pending |
-| EVI-05 | Phase 1 | Pending |
+| EVI-05 | Phase 1 | Complete |
 | EVI-06 | Phase 1 | Pending |
 | EVI-07 | Phase 9 | Pending |
 | EVI-08 | Phase 9 | Pending |
@@ -220,7 +220,7 @@
 | VIA-02 | Phase 6 | Pending |
 | VIA-03 | Phase 6 | Pending |
 | VIA-04 | Phase 6 | Pending |
-| VIA-05 | Phase 1 | Pending |
+| VIA-05 | Phase 1 | Complete |
 | ING-01 | Phase 8 | Pending |
 | ING-02 | Phase 8 | Pending |
 | ING-03 | Phase 8 | Pending |

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-07-27T22:38:57.032Z"
-last_activity: "2026-07-27 — Fase 1 planificada: 10 planes en 5 olas, 3 rondas de verificación"
+status: executing
+last_updated: "2026-07-30T02:17:44.644Z"
+last_activity: 2026-07-30
 progress:
   total_phases: 12
   completed_phases: 0
   total_plans: 10
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -20,16 +20,16 @@ progress:
 Ver: .planning/PROJECT.md (actualizado 2026-07-24)
 
 **Core value:** Que la captura de evidencia visual sea confiable, sincronizada y trazable: cuando el portero presiona el botón, el sistema obtiene sí o sí las fotos de todas las cámaras del mismo instante, asociadas al vehículo correcto, y las guarda de forma auditable.
-**Current focus:** Fase 1 — Núcleo, evidencia trazable y contratos externos congelados
+**Current focus:** Phase 01 — n-cleo-evidencia-trazable-y-contratos-externos-congelados
 
 ## Current Position
 
-Phase: 1 de 12 (Núcleo, evidencia trazable y contratos externos congelados)
-Plan: 0 de 10 en la fase actual
-Status: Ready to execute (10 planes en 5 olas, verificados en 3 rondas)
-Last activity: 2026-07-27 — Fase 1 planificada: 10 planes en 5 olas, 3 rondas de verificación
+Phase: 01 (n-cleo-evidencia-trazable-y-contratos-externos-congelados) — EXECUTING
+Plan: 3 of 10
+Status: Ready to execute
+Last activity: 2026-07-30
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 10%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 - Tendencia: —
 
 *Se actualiza al completar cada plan*
+| Phase 01 P02 | 41min | 3 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Decisiones recientes que afectan el trabajo actual:
 - [Roadmap]: El certificado de firma de código se compra a partir de la Fase 4, junto con un instalador de humo probado en VM limpia. Es plazo administrativo bloqueante.
 - [Roadmap]: El motor de visión clásica (VIS-07, VIS-08) queda en la Fase 12, la última de v1. La abstracción de motor se diseña en la Fase 4.
 - [Investigación]: Ultralytics YOLO prohibido (AGPL-3.0). Detector: RF-DETR-Nano/Small sobre ONNX Runtime.
+- [Phase 01]: 01-02: la huella rechaza mayusculas en vez de normalizarlas; hexdigest() siempre da minusculas, asi que una mayuscula solo puede venir de una edicion a mano
+- [Phase 01]: 01-02: el orden de hasheo del manifiesto se deriva de (camara_id, instante_monotono_ns), nunca del orden de insercion
+- [Phase 01]: 01-02: Viaje y Remito son entidades con igualdad por identificador; la comparacion campo por campo recursaba por la relacion N:M
 
 ### Pending Todos
 
