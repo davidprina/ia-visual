@@ -77,7 +77,10 @@ def test_la_huella_es_inmutable() -> None:
 def test_dos_huellas_del_mismo_contenido_son_el_mismo_valor() -> None:
     """Es un valor, no una entidad: la igualdad es por contenido."""
     assert HuellaDeIntegridad(HEXADECIMAL_VALIDO) == HuellaDeIntegridad(HEXADECIMAL_VALIDO)
-    assert len({HuellaDeIntegridad(HEXADECIMAL_VALIDO), HuellaDeIntegridad(HEXADECIMAL_VALIDO)}) == 1
+
+    dos_veces = {HuellaDeIntegridad(HEXADECIMAL_VALIDO), HuellaDeIntegridad(HEXADECIMAL_VALIDO)}
+
+    assert len(dos_veces) == 1, "La huella tiene que ser hasheable y comparable por valor."
 
 
 def test_coincide_con_compara_dos_huellas() -> None:

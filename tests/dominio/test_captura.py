@@ -64,7 +64,13 @@ def huella_de(semilla: str) -> HuellaDeIntegridad:
     return HuellaDeIntegridad(f"{semilla:0>4}".encode().hex().ljust(64, "0")[:64])
 
 
-def nueva_captura(autor: UsuarioId | None = UsuarioId("usuario-1")) -> CapturaDeControl:
+#: El autor por defecto de las capturas de estas pruebas. Vive como constante de módulo
+#: porque `UsuarioId(...)` en el valor por defecto de un argumento se evalúa una sola vez al
+#: importar, y ese patrón es una fuente clásica de estado compartido entre pruebas.
+AUTOR = UsuarioId("usuario-1")
+
+
+def nueva_captura(autor: UsuarioId | None = AUTOR) -> CapturaDeControl:
     return CapturaDeControl.nueva(
         instante_objetivo_ns=INSTANTE_OBJETIVO_NS,
         autor=autor,
