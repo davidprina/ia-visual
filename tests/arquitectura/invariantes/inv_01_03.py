@@ -129,6 +129,21 @@ INVARIANTES: tuple[Invariante, ...] = (
             "en el modo que debería respetarlos."
         ),
     ),
+    # --- 4. La frescura se mide contra el tiempo real, nunca contra uno falso ---- #
+    Invariante(
+        ruta="tests/integracion/test_frescura.py",
+        modo="ausente",
+        patron=r"freezegun|time_machine|reloj virtual",
+        ignorar_mayusculas=True,
+        motivo=(
+            "El fenómeno que esta prueba mide **es** la acumulación real de buffers en el "
+            "decodificador de FFmpeg. Con el tiempo falsificado el fenómeno desaparece: la "
+            "prueba pasaría siempre, el Criterio de Éxito 5 se reportaría cumplido y la "
+            "evidencia quedaría impugnable en la primera auditoría. La aceleración "
+            "legítima es acortar la ventana de medición —60 s en la compuerta, 600 s en la "
+            "tanda programada—, no mentir sobre el reloj."
+        ),
+    ),
     Invariante(
         ruta="src/porteria/infraestructura/video/archivo.py",
         modo="presente",
