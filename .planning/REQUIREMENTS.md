@@ -20,8 +20,8 @@
 
 - [ ] **CAP-01**: El sistema captura video desde cámaras IP por RTSP con transporte TCP explícito y tiempo de espera configurable
 - [ ] **CAP-02**: El sistema captura video desde webcam USB conectada al equipo
-- [ ] **CAP-03**: El sistema reproduce archivos de video locales como fuente, para pruebas deterministas sin hardware
-- [ ] **CAP-04**: Cada fuente entrega siempre el frame más reciente disponible, descartando los viejos, de modo que la latencia no crece con el tiempo de ejecución
+- [x] **CAP-03**: El sistema reproduce archivos de video locales como fuente, para pruebas deterministas sin hardware
+- [x] **CAP-04**: Cada fuente entrega siempre el frame más reciente disponible, descartando los viejos, de modo que la latencia no crece con el tiempo de ejecución
 - [ ] **CAP-05**: El sistema detecta que una fuente dejó de entregar frames nuevos aunque la conexión aparente estar viva, y cambia su estado a caída en menos de 15 segundos
 - [ ] **CAP-06**: El sistema reconecta automáticamente una fuente caída sin detener las demás y sin acumular hilos ni memoria
 - [ ] **CAP-07**: La interfaz muestra el estado en vivo de cada fuente: conectada, degradada, caída o reconectando
@@ -178,8 +178,8 @@
 | NUC-06 | Phase 1 | Pending |
 | CAP-01 | Phase 2 | Pending |
 | CAP-02 | Phase 2 | Pending |
-| CAP-03 | Phase 1 | Pending |
-| CAP-04 | Phase 1 | Pending |
+| CAP-03 | Phase 1 | Complete |
+| CAP-04 | Phase 1 | Complete |
 | CAP-05 | Phase 2 | Pending |
 | CAP-06 | Phase 2 | Pending |
 | CAP-07 | Phase 2 | Pending |
