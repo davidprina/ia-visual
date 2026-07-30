@@ -110,4 +110,29 @@ INVARIANTES: tuple[Invariante, ...] = (
         # justamente que la advertencia esté escrita para quien lea el código.
         ignorar_comentarios=False,
     ),
+    # --- 3. El estado del remito se deriva, no se persiste (D-31) ---------------- #
+    Invariante(
+        ruta="src/porteria/dominio/viaje/modelo.py",
+        modo="ausente",
+        patron=r"estado_remito",
+        motivo=(
+            "D-31: el estado del remito (completo o incompleto) **se deriva** de si algún "
+            "artículo carece de peso teórico, y no se persiste en ningún campo. Con un "
+            "campo de estado guardado, estado y datos pueden contradecirse —y entonces hay "
+            "que decidir a cuál creerle, que es una decisión que nadie quiere tomar frente "
+            "a una diferencia de peso auditada. La propiedad derivada "
+            "`Remito.tiene_peso_teorico_completo` no puede mentir."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/dominio/viaje/modelo.py",
+        modo="presente",
+        patron=r"class Remito",
+        motivo=(
+            "El modelo de viaje tiene que declarar `Remito` en español (D-32) y con la "
+            "relación N:M hacia `Viaje`: un viaje con tres remitos y un remito compartido "
+            "por dos viajes es el caso real que la Fase 6 sostiene, y modelarlo uno a "
+            "muchos obligaría a migrar un esquema con datos productivos."
+        ),
+    ),
 )
