@@ -94,4 +94,20 @@ INVARIANTES: tuple[Invariante, ...] = (
             "y taparlo."
         ),
     ),
+    # --- 2. La cuarentena mueve y nunca elimina (D-13, T-01-18) ------------------ #
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/cuarentena.py",
+        modo="ausente",
+        patron=r"\b(unlink|rmtree|remove)\b",
+        motivo=(
+            "El barrido de huérfanos **mueve** y nunca elimina, porque un archivo sin fila "
+            "puede ser justamente la foto del camión del corte de luz —el orden "
+            "archivo-primero de D-12 está diseñado para que ese sea el único huérfano "
+            "posible, así que tirarlo sería tirar el caso que el diseño protege—. La "
+            "invariante existe porque la tentación llega después: el día que la carpeta de "
+            "cuarentena ocupe varios gigabytes, «limpiarla desde acá» va a parecer una "
+            "mejora. La limpieza es una decisión de la persona que audita, con su purga "
+            "manual y su lápida (D-10), no un efecto secundario del arranque."
+        ),
+    ),
 )

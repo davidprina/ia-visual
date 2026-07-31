@@ -71,6 +71,7 @@ __all__ = [
     "RutaFueraDeLaRaiz",
     "guardar_atomico",
     "ruta_absoluta",
+    "ruta_para_el_sistema",
     "verificar",
 ]
 
@@ -91,8 +92,12 @@ SUFIJO_TEMPORAL: Final = ".part"
 _PREFIJO_LARGO: Final = "\\\\?\\"
 
 
-def _para_el_sistema(ruta: Path | str) -> str:
+def ruta_para_el_sistema(ruta: Path | str) -> str:
     r"""Devuelve la ruta lista para la llamada al sistema, con prefijo extendido si aplica.
+
+    Es público —y no un ayudante privado— porque la cuarentena necesita exactamente lo
+    mismo: su sufijo `cuarentena/AAAA-MM-DD/<64 hexadecimales>.jpg` mide 90 caracteres,
+    once más que el de la evidencia, así que es el que primero se pasaría de `MAX_PATH`.
 
     Fuera de Windows devuelve el texto tal cual. En Windows antepone `\\?\` —o `\\?\UNC\`
     para un recurso de red—, que es lo que saltea el límite de 260 caracteres. El prefijo
@@ -197,13 +202,13 @@ def guardar_atomico(
     destino = ruta_absoluta(raiz, relativa)
     destino_dir = destino.parent
 
-    if os.path.exists(_para_el_sistema(destino)):
+    if os.path.exists(ruta_para_el_sistema(destino)):
         return huella, relativa
 
-    os.makedirs(_para_el_sistema(destino_dir), exist_ok=True)
+    os.makedirs(ruta_para_el_sistema(destino_dir), exist_ok=True)
 
     descriptor, temporal = tempfile.mkstemp(
-        dir=_para_el_sistema(destino_dir),
+        dir=ruta_para_el_sistema(destino_dir),
         prefix=PREFIJO_TEMPORAL,
         suffix=SUFIJO_TEMPORAL,
     )
@@ -223,7 +228,7 @@ def guardar_atomico(
             finally:
                 os.close(descriptor_dir)
 
-        os.replace(temporal, _para_el_sistema(destino))
+        os.replace(temporal, ruta_para_el_sistema(destino))
     except BaseException:
         # Sin esta limpieza, cada escritura fallida deja un temporal, y un disco lleno
         # los acumula hasta llenar lo poco que quedaba libre (T-01-08). Se re-lanza
@@ -248,7 +253,7 @@ def verificar(
     """
     destino = ruta_absoluta(raiz, ruta_relativa)
 
-    if not os.path.isfile(_para_el_sistema(destino)):
+    if not os.path.isfile(ruta_para_el_sistema(destino)):
         raise FileNotFoundError(
             f"No hay archivo de evidencia en «{ruta_relativa}».\n"
             f"Se lo buscó en: {destino}\n"
@@ -257,7 +262,7 @@ def verificar(
             "Confundirlos escondería el problema real detrás del otro."
         )
 
-    with open(_para_el_sistema(destino), "rb") as archivo:
+    with open(ruta_para_el_sistema(destino), "rb") as archivo:
         recalculada = HuellaDeIntegridad(hashlib.file_digest(archivo, "sha256").hexdigest())
 
     return evaluar(huella, recalculada)
@@ -312,5 +317,5 @@ class AlmacenDeEvidenciaEnDisco:
         basura en la raíz de evidencia cada vez que alguien mira el panel sería peor que
         el dato que devuelve.
         """
-        ruta = _para_el_sistema(self._raiz)
+        ruta = ruta_para_el_sistema(self._raiz)
         return os.path.isdir(ruta) and os.access(ruta, os.W_OK)
