@@ -287,7 +287,7 @@ Las fases se ejecutan en orden numérico: 1 → 2 → 3 → 4 → 5 → 6 → 7 
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Núcleo, evidencia trazable y contratos externos | 2/10 | In Progress|  |
+| 1. Núcleo, evidencia trazable y contratos externos | 3/10 | In Progress|  |
 | 2. Ingesta multi-fuente robusta y visor que no miente | 0/TBD | Not started | - |
 | 3. Captura sincronizada de un botón (Core Value) | 0/TBD | Not started | - |
 | 4. Detección por IA con proveedor verificado | 0/TBD | Not started | - |

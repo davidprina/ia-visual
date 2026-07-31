@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-07-30T21:49:30.551Z"
-last_activity: 2026-07-30
+last_updated: "2026-07-31T03:14:09.119Z"
+last_activity: 2026-07-31
 progress:
   total_phases: 12
   completed_phases: 0
   total_plans: 10
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -25,11 +25,11 @@ Ver: .planning/PROJECT.md (actualizado 2026-07-24)
 ## Current Position
 
 Phase: 01 (n-cleo-evidencia-trazable-y-contratos-externos-congelados) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
-Last activity: 2026-07-30
+Last activity: 2026-07-31
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██░░░░░░░░] 20%
 *Se actualiza al completar cada plan*
 | Phase 01 P02 | 41min | 3 tasks | 21 files |
 | Phase 01 P03 | 76min | 3 tasks | 12 files |
+| Phase 01 P06 | 312min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,10 @@ Decisiones recientes que afectan el trabajo actual:
 - [Phase 01]: 01-02: Viaje y Remito son entidades con igualdad por identificador; la comparacion campo por campo recursaba por la relacion N:M
 - [Phase ?]: El tope del maximo de publicar se deriva de sys.getswitchinterval() y no del 1 ms del plan: ese maximo lo acota el planificador de CPython, no el diseno del slot. Mediana y p99 conservan el milisegundo, con contraprueba contra queue.Queue (0,016 ms contra 195 ms)
 - [Phase ?]: FrameSellado vive en el modulo del puerto y no en el adaptador: el contrato de capas prohibe que aplicacion importe de infraestructura, y TYPE_CHECKING no es salida porque exclude_type_checking_imports esta deliberadamente sin activar
+- [Phase ?]: 01-06: la separacion entre bitacora tecnica y cadena de custodia es una invariante de codigo sobre el texto del modulo, no una convencion: el antipatron del logger con es_auditoria=True es imposible de escribir sin romper la compuerta
+- [Phase ?]: 01-06: la cadena de procesadores de structlog corre una sola vez y los handlers solo eligen el formato; es lo que hace que el redactor de secretos no pueda ser esquivado por un destino agregado despues
+- [Phase ?]: 01-06: ConfiguracionEnBase no es duena del esquema: recibe el Engine inyectado y declara COLUMNAS_REQUERIDAS como contrato con el plan 01-05, lo que permitio cerrar este plan sin depender de aquel
+- [Phase ?]: 01-06: el largo de la raiz de evidencia se valida en el cargador antes de construir el modelo, porque pydantic envuelve todo error de validador en ValidationError y a la consola tiene que llegar el mensaje con el maximo y el largo elegido
 
 ### Pending Todos
 
@@ -92,6 +97,10 @@ Ninguno todavía.
 
 ## Session Continuity
 
-Última sesión: 2026-07-25
-Se detuvo en: ROADMAP.md y STATE.md creados; traceability de REQUIREMENTS.md actualizada
+Última sesión: 2026-07-31
+Se detuvo en: Completado 01-06-PLAN.md (bitácora técnica, redacción de secretos y configuración en dos capas). Compuerta en verde, 365 pruebas rápidas.
 Archivo de reanudación: Ninguno
+
+**Nota sobre la métrica de 01-06:** los 312 min son reloj de pared e incluyen un corte de
+sesión del proveedor con la fase RED sin commitear. El trabajo efectivo es una fracción de
+ese número; conviene descontarlo al mirar la velocidad promedio.

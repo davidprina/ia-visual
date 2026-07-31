@@ -14,7 +14,7 @@
 - [ ] **NUC-03**: Los mensajes entre núcleo e interfaz están definidos como contratos tipados y validados, serializables sin cambios en el dominio
 - [ ] **NUC-04**: Todos los puertos de salida (fuente de video, motor de detección, almacén de evidencia, proveedor de pesaje, proveedor de datos maestros, reloj) tienen un doble de prueba que permite ejecutar el sistema completo sin hardware ni sistemas externos
 - [ ] **NUC-05**: Cada operación que persiste estado, evidencia y eventos lo hace en una única transacción atómica: o se guarda todo, o no se guarda nada
-- [ ] **NUC-06**: El sistema registra en bitácora estructurada cada operación relevante, con nivel configurable y rotación automática de archivos
+- [x] **NUC-06**: El sistema registra en bitácora estructurada cada operación relevante, con nivel configurable y rotación automática de archivos
 
 ### Captura de video (CAP)
 
@@ -123,7 +123,7 @@
 - [ ] **DIS-03**: El empaquetado deja las bibliotecas del toolkit de interfaz sustituibles por el usuario, cumpliendo su licencia
 - [ ] **DIS-04**: La aplicación se recupera automáticamente tras un corte de energía, restaurando su estado sin intervención
 - [ ] **DIS-05**: El esquema de base de datos se actualiza mediante migraciones versionadas, preservando los datos existentes
-- [ ] **DIS-06**: La aplicación funciona correctamente en rutas con espacios y caracteres acentuados
+- [x] **DIS-06**: La aplicación funciona correctamente en rutas con espacios y caracteres acentuados
 
 ---
 
@@ -175,7 +175,7 @@
 | NUC-03 | Phase 2 | Pending |
 | NUC-04 | Phase 1 | Pending |
 | NUC-05 | Phase 1 | Pending |
-| NUC-06 | Phase 1 | Pending |
+| NUC-06 | Phase 1 | Complete |
 | CAP-01 | Phase 2 | Pending |
 | CAP-02 | Phase 2 | Pending |
 | CAP-03 | Phase 1 | Complete |
@@ -248,7 +248,7 @@
 | DIS-03 | Phase 11 | Pending |
 | DIS-04 | Phase 11 | Pending |
 | DIS-05 | Phase 1 | Pending |
-| DIS-06 | Phase 1 | Pending |
+| DIS-06 | Phase 1 | Complete |
 
 **Requerimientos por fase:**
 
