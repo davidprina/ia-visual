@@ -34,7 +34,7 @@
 - [ ] **EVI-03**: El sistema declara una ventana de aceptación configurable y marca la captura como sincronizada o estimada según el desvío observado
 - [ ] **EVI-04**: Una captura en la que falta alguna cámara se marca explícitamente como incompleta y nunca aparenta estar completa
 - [x] **EVI-05**: El sistema calcula la huella SHA-256 de cada imagen en el momento de la ingesta y la persiste junto a sus metadatos
-- [ ] **EVI-06**: Las imágenes se almacenan en el sistema de archivos direccionadas por su contenido, con la base de datos guardando únicamente metadatos y referencia
+- [x] **EVI-06**: Las imágenes se almacenan en el sistema de archivos direccionadas por su contenido, con la base de datos guardando únicamente metadatos y referencia
 - [ ] **EVI-07**: El usuario consulta las capturas históricas filtrando por fecha, patente, tipo de movimiento y estado de auditoría
 - [ ] **EVI-08**: El usuario exporta un conjunto de evidencia con un manifiesto que incluye las huellas, permitiendo verificar su integridad fuera del sistema
 - [ ] **EVI-09**: El sistema registra en bitácora inmutable cada acceso y exportación de evidencia
@@ -189,7 +189,7 @@
 | EVI-03 | Phase 3 | Pending |
 | EVI-04 | Phase 3 | Pending |
 | EVI-05 | Phase 1 | Complete |
-| EVI-06 | Phase 1 | Pending |
+| EVI-06 | Phase 1 | Complete |
 | EVI-07 | Phase 9 | Pending |
 | EVI-08 | Phase 9 | Pending |
 | EVI-09 | Phase 9 | Pending |
