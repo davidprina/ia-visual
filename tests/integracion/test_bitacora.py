@@ -23,6 +23,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+
 from porteria.infraestructura.runtime.bitacora import (
     NOMBRE_ARCHIVO,
     cerrar_bitacora,
@@ -30,7 +31,6 @@ from porteria.infraestructura.runtime.bitacora import (
     directorio_de_bitacora_por_defecto,
     obtener_bitacora,
 )
-
 from tests.conftest import RutaHostil
 
 #: Caracteres que no sirven como nombre de directorio en Windows.
