@@ -53,6 +53,8 @@ from typing import Any
 import platformdirs
 import structlog
 
+from porteria.infraestructura.runtime.redaccion import redactar
+
 __all__ = [
     "BYTES_MAXIMOS_POR_DEFECTO",
     "IDENTIFICADOR_TECNICO",
@@ -129,8 +131,10 @@ def procesadores_compartidos() -> list[Callable[..., Any]]:
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
-        # El redactor de secretos se enchufa acá, como último eslabón compartido.
-        # Lo agrega `redaccion.py`, que es su dueño.
+        # Último eslabón compartido, y a propósito el último: lo que salga de acá ya no
+        # tiene credenciales, y cualquier destino que se agregue después las hereda
+        # redactadas sin tener que acordarse de nada.
+        redactar,
     ]
 
 

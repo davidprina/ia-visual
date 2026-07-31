@@ -24,18 +24,18 @@ from pathlib import Path
 
 import pytest
 import structlog
-from porteria.infraestructura.runtime.redaccion import (
-    CLAVES_SENSIBLES,
-    PROFUNDIDAD_MAXIMA,
-    REDACTADO,
-    redactar,
-)
 
 from porteria.infraestructura.runtime.bitacora import (
     NOMBRE_ARCHIVO,
     cerrar_bitacora,
     configurar_bitacora,
     obtener_bitacora,
+)
+from porteria.infraestructura.runtime.redaccion import (
+    CLAVES_SENSIBLES,
+    PROFUNDIDAD_MAXIMA,
+    REDACTADO,
+    redactar,
 )
 from tests.conftest import RutaHostil
 
