@@ -65,4 +65,29 @@ INVARIANTES: tuple[Invariante, ...] = (
             "razón por la que el punto de entrada de la consola hace `reconfigure`."
         ),
     ),
+    # --- 2. La ventana por defecto se declara no validada, en el código (D-39) -- #
+    Invariante(
+        ruta="src/porteria/infraestructura/configuracion/en_base.py",
+        modo="presente",
+        patron=r"150",
+        motivo=(
+            "D-39 fija ±150 ms como valor por defecto de la ventana de aceptación. Si el "
+            "número desaparece del catálogo, el composition root del plan 01-07 se queda "
+            "sin qué inyectar y cada captura pasaría a evaluarse contra un criterio "
+            "distinto del que la fase declaró."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/configuracion/en_base.py",
+        modo="presente",
+        patron=r"no validado",
+        motivo=(
+            "D-39 exige que el valor por defecto de la ventana esté marcado como **no "
+            "validado** con el cliente ni medido en campo, y esa marca vive donde se lee "
+            "el valor, no sólo en un documento de planificación. Un número que nadie "
+            "midió y que el código presenta como si fuera un hecho es peor que no tener "
+            "número: nadie lo vuelve a mirar. Qué revisar: la ayuda de la clave "
+            "`ventana_aceptacion_ms` en el catálogo."
+        ),
+    ),
 )
