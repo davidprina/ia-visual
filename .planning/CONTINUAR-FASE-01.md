@@ -89,13 +89,17 @@ Foto al momento de escribir esto. Reconfirmar con el bloque de arriba.
 | 01-03 | 2 | Completo — 6 commits, SUMMARY en disco |
 | 01-04 | 3 | Pendiente |
 | 01-05 | 3 | Pendiente |
-| 01-06 | 2 | Pendiente |
+| 01-06 | 2 | Completo — 7 commits, SUMMARY en disco. Cierra NUC-06, D-30 |
 | 01-07 | 4 | Pendiente |
 | 01-08 | 4 | Pendiente |
 | 01-09 | 5 | Pendiente |
 | 01-10 | 5 | Pendiente |
 
 Orden de waves: `1` → `2` (01-02, 01-03, 01-06) → `3` (01-04, 01-05) → `4` (01-07, 01-08) → `5` (01-09, 01-10).
+
+**Wave 2 cerrada.** Compuerta corrida de forma independiente por el orquestador al cerrarla:
+exit 0, 366 pruebas, 4 contratos, 17 módulos de dominio, 36 dependencias auditadas.
+Siguiente: wave 3 (01-04, 01-05).
 
 ---
 
