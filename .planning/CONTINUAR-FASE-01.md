@@ -87,7 +87,7 @@ Foto al momento de escribir esto. Reconfirmar con el bloque de arriba.
 | 01-01 | 1 | Tareas 1-3 commiteadas, compuerta en verde. **Tarea 4 bloqueada** (ver abajo) |
 | 01-02 | 2 | Completo — 7 commits, SUMMARY en disco. Cierra NUC-01, EVI-05, VIA-05 |
 | 01-03 | 2 | Completo — 6 commits, SUMMARY en disco |
-| 01-04 | 3 | Pendiente |
+| 01-04 | 3 | Completo — 6 commits, SUMMARY en disco. Cierra EVI-05 |
 | 01-05 | 3 | Pendiente |
 | 01-06 | 2 | Completo — 7 commits, SUMMARY en disco. Cierra NUC-06, D-30 |
 | 01-07 | 4 | Pendiente |
@@ -129,7 +129,7 @@ obligatorios, para cerrar 01-01 con su SUMMARY.
 > Nota: crear el repo por API es un `POST`, y tu regla global prohíbe métodos de escritura
 > contra APIs externas sin excepción. Por eso este paso queda de tu lado, no del mío.
 
-### 2. Ratificar tres criterios de aceptación sustituidos
+### 2. Ratificar cuatro criterios de aceptación sustituidos
 
 Los ejecutores **reemplazaron criterios escritos en los planes**. En los tres casos el
 criterio original era inmedible o contraproducente, y en los tres la sustitución agrega
@@ -166,6 +166,17 @@ se verifique.
   el borde.
 - **Lo que quedó:** el contrato se precisó a lo que garantiza de verdad — la fuente se
   vacía y no se repone. La prueba afirma tres propiedades donde el plan pedía una.
+
+**d) 01-04 — el piso de 5 KB de la miniatura no es alcanzable para cualquier frame**
+
+- **El problema:** el tamaño de un JPEG lo fija el contenido, no el codificador. Medido a
+  320 px de lado mayor: un frame plano (pared de noche, lente tapado) pesa 1,55 KiB a
+  cualquier calidad, porque no hay información que codificar.
+- **Lo que quedó:** calidad 90, la única que deja dentro de la banda de 5–30 KiB tanto la
+  imagen representativa (7,49 KiB) como el peor caso de ruido puro (21,31 KiB; a calidad
+  95 se iría a 32,75 KiB). El límite quedó **escrito como prueba**
+  (`test_un_frame_plano_queda_por_debajo_de_la_banda`) en vez de esconderse eligiendo sólo
+  imágenes convenientes.
 
 ---
 
