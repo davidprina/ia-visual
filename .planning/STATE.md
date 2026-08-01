@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-07-31T21:20:10.312Z"
-last_activity: 2026-07-31
+last_updated: "2026-08-01T23:41:16.758Z"
+last_activity: 2026-08-01
 progress:
   total_phases: 12
   completed_phases: 0
   total_plans: 10
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -25,11 +25,11 @@ Ver: .planning/PROJECT.md (actualizado 2026-07-24)
 ## Current Position
 
 Phase: 01 (n-cleo-evidencia-trazable-y-contratos-externos-congelados) — EXECUTING
-Plan: 6 of 10
+Plan: 7 of 10
 Status: Ready to execute
-Last activity: 2026-07-31
+Last activity: 2026-08-01
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [████░░░░░░] 40%
 | Phase 01 P02 | 41min | 3 tasks | 21 files |
 | Phase 01 P03 | 76min | 3 tasks | 12 files |
 | Phase 01 P06 | 312min | 3 tasks | 10 files |
+| Phase 01 P05 | 118min | 3 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Decisiones recientes que afectan el trabajo actual:
 - [Phase ?]: 01-06: la cadena de procesadores de structlog corre una sola vez y los handlers solo eligen el formato; es lo que hace que el redactor de secretos no pueda ser esquivado por un destino agregado despues
 - [Phase ?]: 01-06: ConfiguracionEnBase no es duena del esquema: recibe el Engine inyectado y declara COLUMNAS_REQUERIDAS como contrato con el plan 01-05, lo que permitio cerrar este plan sin depender de aquel
 - [Phase ?]: 01-06: el largo de la raiz de evidencia se valida en el cargador antes de construir el modelo, porque pydantic envuelve todo error de validador en ValidationError y a la consola tiene que llegar el mensaje con el maximo y el largo elegido
+- [Phase ?]: 01-05: la version de esquema ES el identificador de la revision cabeza de Alembic — una sola verdad sobre en que version esta la base
+- [Phase ?]: 01-05: comprobar_integridad vive en sqlite/integridad.py y no en env.py — el entorno de Alembic no es importable, y una comprobacion que ninguna prueba puede invocar es una que nadie vio fallar
+- [Phase ?]: 01-05: la tabla configuracion no lleva columna tipo — se honra el contrato ya entregado del plan 01-06 por encima de la letra del 01-05
 
 ### Pending Todos
 

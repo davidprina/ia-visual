@@ -122,7 +122,7 @@
 - [ ] **DIS-02**: El instalador incluye el texto de las licencias de terceros y la aplicación las muestra desde su interfaz
 - [ ] **DIS-03**: El empaquetado deja las bibliotecas del toolkit de interfaz sustituibles por el usuario, cumpliendo su licencia
 - [ ] **DIS-04**: La aplicación se recupera automáticamente tras un corte de energía, restaurando su estado sin intervención
-- [ ] **DIS-05**: El esquema de base de datos se actualiza mediante migraciones versionadas, preservando los datos existentes
+- [x] **DIS-05**: El esquema de base de datos se actualiza mediante migraciones versionadas, preservando los datos existentes
 - [x] **DIS-06**: La aplicación funciona correctamente en rutas con espacios y caracteres acentuados
 
 ---
@@ -247,7 +247,7 @@
 | DIS-02 | Phase 11 | Pending |
 | DIS-03 | Phase 11 | Pending |
 | DIS-04 | Phase 11 | Pending |
-| DIS-05 | Phase 1 | Pending |
+| DIS-05 | Phase 1 | Complete |
 | DIS-06 | Phase 1 | Complete |
 
 **Requerimientos por fase:**
