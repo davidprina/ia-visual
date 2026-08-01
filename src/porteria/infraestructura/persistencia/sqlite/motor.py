@@ -25,17 +25,25 @@ este archivo.
 tabla que se está reescribiendo. Las dos soluciones que parecen obvias **no funcionan**, y
 esto se reprodujo en vivo:
 
-* emitir el PRAGMA dentro de la transacción de la migración es un **no-op**: SQLite ignora
-  el cambio de `foreign_keys` mientras hay una transacción abierta, así que la migración
-  parece configurada y no lo está;
+* emitir el PRAGMA dentro de la transacción de la migración **no** es un no-op incondicional,
+  y ésa es la parte peligrosa. Medido en esta máquina con SQLAlchemy 2.0.51: si la
+  transacción todavía no tocó datos, el PRAGMA **sí** toma efecto (se lee `0`) y el batch
+  pasa, porque el conector difiere el `BEGIN` real de SQLite hasta la primera sentencia de
+  datos y un PRAGMA no lo dispara; pero si la migración ya ejecutó cualquier DML antes, el
+  `BEGIN` está abierto de verdad, el PRAGMA se ignora en silencio (se sigue leyendo `1`) y el
+  batch falla con el mismo `IntegrityError`. Es decir: la misma línea funciona o no según lo
+  que la revisión haya hecho **antes**, sin ninguna señal de cuál de los dos casos es. Una
+  revisión que hoy pasa se rompe el día que alguien le agrega un `UPDATE` de datos más
+  arriba;
 * emitirlo antes con `exec_driver_sql` rompe distinto: SQLAlchemy 2.0 hace *autobegin* al
   ejecutar, y la siguiente llamada a `begin()` levanta
   `InvalidRequestError: This connection has already initialized a SQLAlchemy Transaction()`.
 
 Un motor aparte cuyo listener `connect` ya trae las llaves apagadas es limpio, no depende de
-trucos de aislamiento, y deja explícito en el código que la migración corre bajo otras
-reglas. Que sea un motor distinto es también la razón por la que la aplicación nunca puede
-escribir sin validación referencial por accidente: no comparten objeto.
+trucos de aislamiento, no depende del orden de las operaciones dentro de la revisión, y deja
+explícito en el código que la migración corre bajo otras reglas. Que sea un motor distinto es
+también la razón por la que la aplicación nunca puede escribir sin validación referencial por
+accidente: no comparten objeto.
 """
 
 from __future__ import annotations

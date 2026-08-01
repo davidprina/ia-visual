@@ -90,4 +90,103 @@ INVARIANTES: tuple[Invariante, ...] = (
             "puso la carpeta en «Mis Documentos»."
         ),
     ),
+    # --- 3. La ruta de la base no vive en un archivo versionado ----------------- #
+    Invariante(
+        ruta="alembic.ini",
+        modo="ausente",
+        patron=r"sqlalchemy\.url",
+        motivo=(
+            "La ruta de la base la elige el cliente y se resuelve en tiempo de ejecución "
+            "desde el archivo de arranque (D-30). Una URL versionada en el repositorio es "
+            "la ruta de la máquina de quien la escribió: en el mejor caso migra una base "
+            "que no es la del cliente, y en el peor crea una base vacía en otra carpeta y "
+            "la migración «pasa» sin haber tocado los datos que había que migrar."
+        ),
+    ),
+    # --- 4. El respaldo habla el idioma de WAL, no el de copiar archivos -------- #
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/sqlite/respaldo.py",
+        modo="presente",
+        patron=r"\.backup\(",
+        motivo=(
+            "La copia se hace con la API de copia de SQLite, que recorre las páginas por "
+            "dentro del motor e incluye lo que vive en el sidecar del diario. Es lo único "
+            "que produce una copia consistente con el diario activo."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/sqlite/respaldo.py",
+        modo="ausente",
+        patron=r"\bshutil\b",
+        motivo=(
+            "Copiar el archivo de la base con las utilidades de copia de archivos deja "
+            "afuera las transacciones confirmadas que todavía viven en el sidecar del "
+            "diario. El resultado es un respaldo que **abre perfectamente** y al que le "
+            "faltan las últimas capturas: nadie se entera hasta que hace falta restaurarlo, "
+            "que es el peor momento posible para descubrirlo."
+        ),
+    ),
+    # --- 5. El entorno de Alembic corre bajo las reglas correctas --------------- #
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        modo="presente",
+        patron=r"render_as_batch=True",
+        motivo=(
+            "Sin `render_as_batch`, `alembic revision --autogenerate` produce sentencias "
+            "ALTER que SQLite no soporta. La migración generada se ve bien en el "
+            "repositorio y falla al ejecutarse en la base del cliente."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        modo="presente",
+        patron=r"para_migracion=True",
+        motivo=(
+            "El motor de migraciones es un motor **dedicado** con las llaves foráneas "
+            "apagadas. Con las llaves encendidas, todo bloque batch falla al soltar la "
+            "tabla que está reescribiendo si alguien la referencia. Las dos alternativas "
+            "obvias están descartadas con la medición en el docstring de `sqlite/motor.py`."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        modo="presente",
+        patron=r"foreign_key_check",
+        motivo=(
+            "Durante el bloque batch las llaves foráneas están apagadas, así que SQLite no "
+            "valida nada mientras la migración corre. Ésta es la única comprobación que "
+            "detecta una referencia que quedó colgando, y el final es el único momento en "
+            "que se puede hacer. Es la mitad del Criterio de Éxito 6."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        modo="presente",
+        patron=r"integrity_check",
+        motivo=(
+            "La segunda mitad de la comprobación obligatoria: detecta la base dañada a "
+            "nivel de páginas, que es lo que puede dejar una migración interrumpida por un "
+            "corte de energía."
+        ),
+    ),
+    # --- 6. La revisión que ejercita el camino batch ---------------------------- #
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/versions/0002_creado_en_utc.py",
+        modo="presente",
+        patron=r"batch_alter_table",
+        motivo=(
+            "Sin una revisión que reescriba una tabla de verdad, DIS-05 no tiene nada real "
+            "que verificar: una línea base sola sólo demuestra que `CREATE TABLE` funciona."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/versions/0002_creado_en_utc.py",
+        modo="presente",
+        patron=r"naming_convention",
+        motivo=(
+            "El bloque batch necesita la convención de nombres para poder reconstruir las "
+            "restricciones al recrear la tabla. Sin ella, la tabla reflejada las trae sin "
+            "nombre y el bloque falla en la base del cliente, no en el repositorio."
+        ),
+    ),
 )
