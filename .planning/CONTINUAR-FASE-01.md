@@ -88,7 +88,7 @@ Foto al momento de escribir esto. Reconfirmar con el bloque de arriba.
 | 01-02 | 2 | Completo — 7 commits, SUMMARY en disco. Cierra NUC-01, EVI-05, VIA-05 |
 | 01-03 | 2 | Completo — 6 commits, SUMMARY en disco |
 | 01-04 | 3 | Completo — 6 commits, SUMMARY en disco. Cierra EVI-05 |
-| 01-05 | 3 | Pendiente |
+| 01-05 | 3 | Completo — 5 commits, SUMMARY en disco. Esquema + Alembic |
 | 01-06 | 2 | Completo — 7 commits, SUMMARY en disco. Cierra NUC-06, D-30 |
 | 01-07 | 4 | Pendiente |
 | 01-08 | 4 | Pendiente |
@@ -97,9 +97,10 @@ Foto al momento de escribir esto. Reconfirmar con el bloque de arriba.
 
 Orden de waves: `1` → `2` (01-02, 01-03, 01-06) → `3` (01-04, 01-05) → `4` (01-07, 01-08) → `5` (01-09, 01-10).
 
-**Wave 2 cerrada.** Compuerta corrida de forma independiente por el orquestador al cerrarla:
-exit 0, 366 pruebas, 4 contratos, 17 módulos de dominio, 36 dependencias auditadas.
-Siguiente: wave 3 (01-04, 01-05).
+**Waves 2 y 3 cerradas.** Compuerta corrida de forma independiente por el orquestador al
+cerrar cada una. Al cerrar la wave 3: exit 0, **504 pruebas**, 4 contratos, 17 módulos de
+dominio, 36 dependencias auditadas, 1 min 51 s.
+Siguiente: wave 4 (01-07, 01-08).
 
 ---
 
@@ -129,7 +130,7 @@ obligatorios, para cerrar 01-01 con su SUMMARY.
 > Nota: crear el repo por API es un `POST`, y tu regla global prohíbe métodos de escritura
 > contra APIs externas sin excepción. Por eso este paso queda de tu lado, no del mío.
 
-### 2. Ratificar cuatro criterios de aceptación sustituidos
+### 2. Ratificar cinco criterios de aceptación sustituidos
 
 Los ejecutores **reemplazaron criterios escritos en los planes**. En los tres casos el
 criterio original era inmedible o contraproducente, y en los tres la sustitución agrega
@@ -177,6 +178,33 @@ se verifique.
   95 se iría a 32,75 KiB). El límite quedó **escrito como prueba**
   (`test_un_frame_plano_queda_por_debajo_de_la_banda`) en vez de esconderse eligiendo sólo
   imágenes convenientes.
+
+**e) 01-05 — el nombre de una restricción `UNIQUE` es inobservable vía `PRAGMA index_list`**
+
+- **El problema:** SQLite materializa una `UNIQUE` declarada en el `CREATE TABLE` con un
+  autoíndice de **nombre generado**. El criterio pedía verificar el nombre por una vía donde
+  no existe.
+- **Lo que quedó:** verifica las dos propiedades donde vive cada una — que la unicidad
+  **opera** (`index_list`: único, `origin='u'`, más el `IntegrityError` funcional) y que
+  lleva el **nombre que la hace migrable** (DDL de `sqlite_master`). Más fuerte que lo pedido.
+
+### 3. Ratificar dos decisiones de diseño de 01-05
+
+**a) `configuracion` quedó sin columna `tipo`.** El plan 01-05 la pedía; el plan 01-06, ya
+entregado, declara lo contrario en `COLUMNAS_REQUERIDAS` con un motivo explícito. El ejecutor
+honró el contrato ya entregado y agregó una prueba que corre `ConfiguracionEnBase` real contra
+la tabla de la migración. Entre dos verdades sobre el mismo dato, ganó la que ya tiene código
+funcionando encima.
+
+**b) `viaje.patente` se agregó modificando la migración `0001` en vez de creando una `0003`.**
+Modificar una migración existente es normalmente una bandera roja. Acá la justificación es
+exacta: **todavía no existe ninguna instalación**, y hacerlo después costaría precisamente la
+migración sobre datos productivos que este plan existe para evitar. Es la única ventana en que
+se puede hacer sin costo. Si vas a rechazarlo, hay que hacerlo antes de la primera instalación.
+
+> Faltante consciente, no defecto: `viaje` todavía no persiste chofer ni transportista. Son
+> columnas nullable que se agregan con `ADD COLUMN`, la única alteración nativa de SQLite.
+> Lo no retrofiteable de esa tabla —la relación N:M— sí está.
 
 ---
 
