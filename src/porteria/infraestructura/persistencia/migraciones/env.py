@@ -28,8 +28,9 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy.engine import URL, Connection
+from sqlalchemy.engine import URL
 
+from porteria.infraestructura.persistencia.sqlite.integridad import comprobar_integridad
 from porteria.infraestructura.persistencia.sqlite.modelos import Base
 from porteria.infraestructura.persistencia.sqlite.motor import crear_motor
 
@@ -40,10 +41,6 @@ if config.config_file_name is not None:
 
 #: Lo que `alembic revision --autogenerate` compara contra la base.
 target_metadata = Base.metadata
-
-
-class MigracionDejoLaBaseInconsistente(RuntimeError):
-    """La migración terminó pero la base no pasa las comprobaciones de integridad."""
 
 
 def _resolver_ruta_db() -> Path:
@@ -63,37 +60,6 @@ def _resolver_ruta_db() -> Path:
     )
 
     return Path(cargar_configuracion_de_arranque().ruta_base_datos)
-
-
-def comprobar_integridad(conexion: Connection) -> None:
-    """Corre las dos comprobaciones de SQLite y falla si alguna no está limpia.
-
-    Se expone como función propia —y no embebida en `_migrar`— para que las pruebas puedan
-    invocarla sobre una base con una referencia colgada sembrada a mano y exigir que
-    levante. Una comprobación que nunca se vio fallar no es una comprobación.
-
-    Raises:
-        MigracionDejoLaBaseInconsistente: si hay referencias colgadas o la base está dañada.
-    """
-    violaciones = list(conexion.exec_driver_sql("PRAGMA foreign_key_check"))
-    if violaciones:
-        raise MigracionDejoLaBaseInconsistente(
-            "La migración terminó dejando referencias colgadas: hay filas que apuntan a "
-            "otras que no existen.\n"
-            f"Violaciones ({len(violaciones)}): {violaciones[:10]}\n"
-            "Durante una migración batch las llaves foráneas están apagadas, así que SQLite "
-            "no avisa mientras corre; ésta es la única comprobación que lo detecta. La base "
-            "quedó como estaba: la copia previa a la migración es el punto de retorno."
-        )
-
-    estado = conexion.exec_driver_sql("PRAGMA integrity_check").scalar()
-    if estado != "ok":
-        raise MigracionDejoLaBaseInconsistente(
-            f"La comprobación de integridad de la base no dio «ok» sino «{estado}».\n"
-            "Qué hacer: no seguir usando esta base. Restaurar la copia previa a la "
-            "migración, que la orden `migrar` deja siempre salvo que se le pase "
-            "`--sin-respaldo`."
-        )
 
 
 def ejecutar_migraciones_sin_conexion() -> None:

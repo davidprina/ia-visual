@@ -149,7 +149,7 @@ INVARIANTES: tuple[Invariante, ...] = (
         ),
     ),
     Invariante(
-        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        ruta="src/porteria/infraestructura/persistencia/sqlite/integridad.py",
         modo="presente",
         patron=r"foreign_key_check",
         motivo=(
@@ -160,13 +160,25 @@ INVARIANTES: tuple[Invariante, ...] = (
         ),
     ),
     Invariante(
-        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        ruta="src/porteria/infraestructura/persistencia/sqlite/integridad.py",
         modo="presente",
         patron=r"integrity_check",
         motivo=(
             "La segunda mitad de la comprobación obligatoria: detecta la base dañada a "
             "nivel de páginas, que es lo que puede dejar una migración interrumpida por un "
             "corte de energía."
+        ),
+    ),
+    Invariante(
+        ruta="src/porteria/infraestructura/persistencia/migraciones/env.py",
+        modo="presente",
+        patron=r"comprobar_integridad\(",
+        motivo=(
+            "Que la comprobación exista no sirve de nada si la migración no la invoca. "
+            "Esta invariante cierra el otro lado: `env.py` tiene que **llamarla** al "
+            "terminar el `upgrade`. La función vive en `sqlite/integridad.py` y no acá "
+            "porque `env.py` no es importable fuera de una corrida de Alembic, y una "
+            "comprobación que ninguna prueba puede invocar es una que nadie vio fallar."
         ),
     ),
     # --- 6. La revisión que ejercita el camino batch ---------------------------- #

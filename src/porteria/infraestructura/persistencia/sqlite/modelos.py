@@ -128,6 +128,12 @@ class Viaje(Base):
     id: Mapped[str] = mapped_column(String(LARGO_ID_OPACO), primary_key=True, default=_uuid)
     numero_legible: Mapped[str] = mapped_column(String(LARGO_NUMERO_LEGIBLE), unique=True)
 
+    #: Se guarda el texto **tal como llegó**, sin normalizar. El dominio ya tiene el valor
+    #: `Patente`, que conserva el original al lado del canónico justamente para poder
+    #: auditar la traducción: si mañana hay que revisar qué devolvió el ERP, está crudo.
+    #: Normalizar al persistir destruiría ese dato y haría imposible la revisión.
+    patente: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     remitos: Mapped[list[Remito]] = relationship(
         secondary=viaje_remito, back_populates="viajes", lazy="selectin"
     )

@@ -52,8 +52,42 @@ class ResultadoDeRespaldo:
 
 
 def _marca_de_tiempo() -> str:
-    """`AAAAMMDD-HHMMSS` en UTC: ordena lexicográficamente igual que cronológicamente."""
-    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    """`AAAAMMDD-HHMMSS-mmm` en UTC, con milisegundos.
+
+    Los milisegundos no son precisión decorativa: son lo que hace que **ordenar los nombres
+    alfabéticamente dé el mismo resultado que ordenarlos por antigüedad**, que es de lo que
+    depende la poda para saber cuál es la copia más vieja. Con resolución de segundo hacía
+    falta un sufijo de desempate, y un sufijo rompe justamente esa correspondencia:
+    `respaldo-T-2` ordena *antes* que `respaldo-T` porque el guion precede al punto, así que
+    la poda tomaba por más vieja a una copia más nueva.
+    """
+    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")[:-3]
+
+
+def _destino_libre(directorio: Path, marca: str) -> Path:
+    """Un nombre que no pise una copia existente.
+
+    Con milisegundos la colisión es casi imposible, pero «casi» no alcanza cuando lo que
+    está en juego es el único punto de retorno de la base del cliente: si dos respaldos
+    cayeran en el mismo milisegundo, el segundo sobrescribiría al primero y se perdería el
+    estado anterior al intento que falló, que es exactamente el que hace falta.
+    """
+    directorio.mkdir(parents=True, exist_ok=True)
+
+    candidato = directorio / f"{PREFIJO_DE_COPIA}{marca}{SUFIJO_DE_COPIA}"
+    if not candidato.exists():
+        return candidato
+
+    for orden in range(2, 1000):
+        # El desempate va con ancho fijo para no volver a romper el orden alfabético.
+        candidato = directorio / f"{PREFIJO_DE_COPIA}{marca}{orden:03d}{SUFIJO_DE_COPIA}"
+        if not candidato.exists():
+            return candidato
+
+    raise RuntimeError(  # pragma: no cover - mil copias en el mismo milisegundo
+        f"Hay más de mil copias con la marca «{marca}» en «{directorio}». "
+        "Algo está llamando a respaldar en un bucle."
+    )
 
 
 def copias_existentes(directorio: Path) -> list[Path]:
@@ -96,9 +130,7 @@ def respaldar(
         )
 
     if ruta_backup is None:
-        destino = origen.parent / "respaldos" / (
-            f"{PREFIJO_DE_COPIA}{_marca_de_tiempo()}{SUFIJO_DE_COPIA}"
-        )
+        destino = _destino_libre(origen.parent / "respaldos", _marca_de_tiempo())
     else:
         destino = Path(ruta_backup)
 
@@ -114,7 +146,7 @@ def respaldar(
         conexion_destino.close()
         conexion_origen.close()
 
-    conservadas = _podar(destino.parent, conservar)
+    conservadas = _podar(destino.parent, conservar, proteger=destino)
 
     return ResultadoDeRespaldo(
         ruta=destino,
@@ -124,18 +156,29 @@ def respaldar(
     )
 
 
-def _podar(directorio: Path, conservar: int) -> list[Path]:
+def _podar(directorio: Path, conservar: int, *, proteger: Path | None = None) -> list[Path]:
     """Borra las copias más viejas y devuelve las que quedaron.
 
     Sólo alcanza a archivos que este módulo creó —los que llevan su prefijo y su sufijo—.
     Es deliberado: una poda que barriera el directorio entero podría llevarse la base de un
     cliente que decidió guardar los respaldos junto a otra cosa.
+
+    `proteger` es la copia que se acaba de hacer y **nunca** se borra, pase lo que pase con
+    el orden de los nombres. No es defensa en profundidad decorativa: sin ella, cualquier
+    error futuro en la correspondencia entre orden alfabético y antigüedad haría que la
+    orden `migrar` borrara el respaldo que acaba de tomar y después informara su ruta. El
+    operador quedaría creyendo que tiene un punto de retorno que no existe, y se enteraría
+    justo cuando fuera a usarlo.
     """
     copias = copias_existentes(directorio)
     if conservar <= 0 or len(copias) <= conservar:
         return copias
 
+    intocable = proteger.resolve() if proteger is not None else None
+
     for vieja in copias[: len(copias) - conservar]:
+        if intocable is not None and vieja.resolve() == intocable:
+            continue
         vieja.unlink(missing_ok=True)
 
     return copias_existentes(directorio)

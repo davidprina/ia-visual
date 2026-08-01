@@ -53,6 +53,9 @@ def upgrade() -> None:
         "viaje",
         sa.Column("id", sa.String(ID_OPACO), nullable=False),
         sa.Column("numero_legible", sa.String(NUMERO_LEGIBLE), nullable=False),
+        # El texto tal como llegó del ERP o de la carga manual, sin normalizar: es lo que
+        # permite auditar después la traducción a la forma canónica.
+        sa.Column("patente", sa.String(20), nullable=True),
         sa.PrimaryKeyConstraint("id", name="pk_viaje"),
         sa.UniqueConstraint("numero_legible", name="uq_viaje_numero_legible"),
     )
