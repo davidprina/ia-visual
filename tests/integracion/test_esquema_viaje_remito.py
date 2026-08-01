@@ -106,7 +106,9 @@ def test_un_articulo_sin_peso_teorico_se_persiste_y_se_cuenta(esquema: Engine) -
     with Session(esquema) as sesion:
         remito = modelos.Remito(id="r-1", numero="R-1")
         remito.articulos = [
-            modelos.Articulo(remito=remito, codigo="A-1", descripcion="Con peso", peso_teorico_kg=12.5),
+            modelos.Articulo(
+                remito=remito, codigo="A-1", descripcion="Con peso", peso_teorico_kg=12.5
+            ),
             modelos.Articulo(remito=remito, codigo="A-2", descripcion="Sin peso maestro"),
             modelos.Articulo(remito=remito, codigo="A-3", descripcion="Tampoco tiene"),
         ]
@@ -126,7 +128,11 @@ def test_un_articulo_sin_peso_teorico_se_persiste_y_se_cuenta(esquema: Engine) -
 
 
 def test_el_estado_de_completitud_del_remito_no_existe_como_columna(esquema: Engine) -> None:
-    """Se **deriva** de los artículos. Una columna podría contradecir a los datos que tiene al lado."""
+    """Se **deriva** de los artículos.
+
+    Una columna de estado podría contradecir a los datos que tiene al lado, y entonces
+    habría que decidir a cuál creerle.
+    """
     nombres = [str(fila[1]) for fila in columnas_de(esquema, "remito")]
     con_estado = [nombre for nombre in nombres if "estado" in nombre.lower()]
 
@@ -183,12 +189,14 @@ def test_item_evidencia_tiene_las_24_columnas_y_son_las_del_dominio(esquema: Eng
     assert len(nombres) == COLUMNAS_DE_ITEM_EVIDENCIA, (
         f"`item_evidencia` tiene {len(nombres)} columnas y tiene que tener "
         f"{COLUMNAS_DE_ITEM_EVIDENCIA}: los 21 nombres canónicos del dominio más `id`, "
-        f"`captura_id` y `miniatura`. Sobran o faltan: {sorted(nombres ^ (canonicos | COLUMNAS_PROPIAS_DEL_ESQUEMA))}"
+        f"`captura_id` y `miniatura`. Sobran o faltan: "
+        f"{sorted(nombres ^ (canonicos | COLUMNAS_PROPIAS_DEL_ESQUEMA))}"
     )
     assert nombres == canonicos | COLUMNAS_PROPIAS_DEL_ESQUEMA, (
         "Los nombres del esquema no coinciden uno a uno con los del dominio. Una divergencia "
         "de nombres se paga en traducciones silenciosas, que es donde se cuelan los errores "
-        f"que nadie encuentra.\nSólo en la base: {sorted(nombres - canonicos - COLUMNAS_PROPIAS_DEL_ESQUEMA)}"
+        f"que nadie encuentra.\nSólo en la base: "
+        f"{sorted(nombres - canonicos - COLUMNAS_PROPIAS_DEL_ESQUEMA)}"
         f"\nSólo en el dominio: {sorted(canonicos - nombres)}"
     )
 
@@ -294,10 +302,16 @@ def test_ningun_indice_sobre_ruta_relativa_es_unico_y_existe_el_de_captura_y_cam
     with esquema.connect() as conexion:
         indices = list(conexion.exec_driver_sql("PRAGMA index_list('item_evidencia')"))
         detalle = {
-            str(fila[1]): [str(c[2]) for c in conexion.exec_driver_sql(f"PRAGMA index_info('{fila[1]}')")]  # noqa: S608
+            str(fila[1]): [
+                str(columna[2])
+                for columna in conexion.exec_driver_sql(
+                    f"PRAGMA index_info('{fila[1]}')"  # noqa: S608
+                )
+            ]
             for fila in indices
         }
         unicidad = {str(fila[1]): int(fila[2]) for fila in indices}
+        origen = {str(fila[1]): str(fila[3]) for fila in indices}
 
     sobre_ruta = {nombre for nombre, columnas in detalle.items() if columnas == ["ruta_relativa"]}
     assert sobre_ruta, (
@@ -309,14 +323,48 @@ def test_ningun_indice_sobre_ruta_relativa_es_unico_y_existe_el_de_captura_y_cam
         "que rompe la segunda captura de un contenido repetido."
     )
 
+    # La unicidad **opera** sobre el par. SQLite materializa una restricción UNIQUE
+    # declarada en el CREATE TABLE con un autoíndice de nombre generado
+    # (`sqlite_autoindex_…`), así que el nombre declarado es inobservable acá por
+    # construcción: `PRAGMA index_list` nunca lo va a devolver. Lo que sí se puede afirmar
+    # —y es lo que importa para el negocio— es que existe un índice único sobre exactamente
+    # esas dos columnas, con origen `u` (restricción UNIQUE) y no `c` (índice suelto).
     sobre_captura_y_camara = {
         nombre for nombre, columnas in detalle.items() if columnas == ["captura_id", "camara_id"]
     }
-    assert sobre_captura_y_camara == {"uq_item_evidencia_captura_id_camara_id"}, (
-        "Falta la restricción única `uq_item_evidencia_captura_id_camara_id` sobre "
-        f"(captura_id, camara_id). Índices encontrados: {detalle}"
+    assert len(sobre_captura_y_camara) == 1, (
+        "Falta la unicidad sobre (captura_id, camara_id), que es la invariante real del "
+        f"negocio: una captura tiene a lo sumo un ítem por cámara. Índices: {detalle}"
     )
-    assert unicidad["uq_item_evidencia_captura_id_camara_id"] == 1
+    unico = sobre_captura_y_camara.pop()
+    assert unicidad[unico] == 1, f"El índice «{unico}» sobre el par no es único."
+    assert origen[unico] == "u", (
+        f"«{unico}» existe como índice suelto (origen {origen[unico]!r}) y no como "
+        "restricción UNIQUE. Un índice único suelto se comporta igual hoy, pero "
+        "`batch_alter_table` lo trata distinto al reescribir la tabla."
+    )
+
+
+def test_la_restriccion_de_unicidad_lleva_el_nombre_que_la_hace_migrable(
+    esquema: Engine,
+) -> None:
+    """El nombre vive en el DDL, y es lo que permite soltarla en una migración futura.
+
+    Es la mitad que `PRAGMA index_list` no puede ver. Sin nombre, SQLite guarda la
+    restricción anónima y `batch_alter_table` se queda sin forma de referirse a lo que tiene
+    que quitar: la tabla deja de ser migrable. Por eso la convención de nombres del esquema
+    es obligatoria y por eso ésta, que es compuesta, se nombra a mano —la convención sólo
+    toma la primera columna y produciría `uq_item_evidencia_captura_id`—.
+    """
+    with esquema.connect() as conexion:
+        ddl = conexion.exec_driver_sql(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='item_evidencia'"
+        ).scalar_one()
+
+    assert "uq_item_evidencia_captura_id_camara_id" in ddl, (
+        "La restricción única sobre (captura_id, camara_id) es anónima en el esquema. "
+        f"DDL:\n{ddl}"
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -327,7 +375,9 @@ def test_ningun_indice_sobre_ruta_relativa_es_unico_y_existe_el_de_captura_y_cam
 def test_la_tabla_de_configuracion_tiene_las_columnas_que_el_plan_01_06_espera(
     esquema: Engine,
 ) -> None:
-    """`COLUMNAS_REQUERIDAS` es el contrato que `ConfiguracionEnBase` declaró antes de existir el esquema."""
+    """`COLUMNAS_REQUERIDAS` es el contrato que el plan 01-06 declaró antes de que el
+    esquema existiera.
+    """
     nombres = {str(fila[1]) for fila in columnas_de(esquema, NOMBRE_DE_LA_TABLA)}
 
     assert set(COLUMNAS_REQUERIDAS) <= nombres, (

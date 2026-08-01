@@ -29,9 +29,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.engine import URL, Engine
+from sqlalchemy.engine import Engine
 
+from porteria.infraestructura.persistencia.sqlite.motor import crear_motor
 from porteria.infraestructura.runtime.reloj import RelojFijo
 
 # --------------------------------------------------------------------------- #
@@ -237,15 +237,17 @@ def ruta_hostil() -> RutaHostil:
 
 @pytest.fixture
 def motor_sqlite(ruta_hostil: RutaHostil) -> Engine:
-    """Motor SQLAlchemy sobre la base bajo la ruta hostil.
+    """Motor SQLAlchemy del **producto** sobre la base bajo la ruta hostil.
 
-    En este plan la fixture todavía no puede importar `crear_motor`, que llega en
-    01-05. Se construye la URL con `URL.create` y no concatenando `"sqlite:///" + ruta`,
-    que es el antipatrón que rompe con acentos.
+    El plan 01-01 construía acá un `Engine` a mano porque `crear_motor` todavía no
+    existía. Desde el plan 01-05 la fixture llama al motor real, y eso cambia lo que
+    verifica **toda** prueba que la use: pasan a ejercitar los cuatro PRAGMA de
+    producción (WAL, `synchronous=FULL`, llaves foráneas encendidas y espera ante base
+    ocupada) en vez de una configuración de prueba que nadie instala. Una fixture que
+    arma su propio motor es una fixture que puede divergir del producto sin que ninguna
+    prueba lo delate.
     """
-    # 01-05 reemplaza esta construcción por
-    # porteria.infraestructura.persistencia.sqlite.motor.crear_motor
-    motor = create_engine(URL.create("sqlite", database=str(ruta_hostil.ruta_db)))
+    motor = crear_motor(ruta_hostil.ruta_db)
     try:
         yield motor
     finally:

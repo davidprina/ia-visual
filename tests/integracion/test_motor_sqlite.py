@@ -137,7 +137,9 @@ def test_la_base_y_sus_sidecar_viven_en_la_ruta_con_espacios_y_acentos(
     Se afirma **con la conexión abierta**: al cerrar la última, SQLite hace el checkpoint y
     borra los sidecar, así que una comprobación posterior no probaría nada.
     """
-    assert " " in ruta_hostil.ruta_db.parts[-2], "La prueba no está corriendo en una ruta con espacios."
+    assert " " in ruta_hostil.ruta_db.parts[-2], (
+        "La prueba no está corriendo en una ruta con espacios."
+    )
     assert any(caracter in str(ruta_hostil.ruta_db) for caracter in "ñáéí"), (
         "La prueba no está corriendo en una ruta con acentos, así que no ejercita DIS-06."
     )
