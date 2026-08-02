@@ -106,7 +106,10 @@ Siguiente: wave 4 (01-07, 01-08).
 
 ## Pendientes que dependen de vos
 
-### 1. Protección de rama — cierra la Tarea 4 de 01-01
+### 1. Protección de rama — cierra la Tarea 4 de 01-01 — ◆ EN CURSO (2026-08-02)
+
+> El usuario eligió configurar GitHub en vez de tomar la deuda declarada. La wave 4 espera
+> el nombre exacto del check requerido. **No** cerrar 01-01 hasta tenerlo.
 
 El plan pide que la compuerta en rojo bloquee la fusión. Eso es configuración de GitHub,
 no código, y **el repo hoy no tiene remoto**. Lo automatizable ya está entregado:
@@ -130,7 +133,10 @@ obligatorios, para cerrar 01-01 con su SUMMARY.
 > Nota: crear el repo por API es un `POST`, y tu regla global prohíbe métodos de escritura
 > contra APIs externas sin excepción. Por eso este paso queda de tu lado, no del mío.
 
-### 2. Ratificar cinco criterios de aceptación sustituidos
+### 2. Ratificar cinco criterios de aceptación sustituidos — ✅ RATIFICADO (2026-08-02)
+
+> El usuario ratificó las cinco sustituciones el 2026-08-02. No se replanifica ningún plan.
+> Queda abajo el detalle como registro de qué se aceptó y por qué.
 
 Los ejecutores **reemplazaron criterios escritos en los planes**. En los tres casos el
 criterio original era inmedible o contraproducente, y en los tres la sustitución agrega
@@ -188,7 +194,10 @@ se verifique.
   **opera** (`index_list`: único, `origin='u'`, más el `IntegrityError` funcional) y que
   lleva el **nombre que la hace migrable** (DDL de `sqlite_master`). Más fuerte que lo pedido.
 
-### 3. Ratificar dos decisiones de diseño de 01-05
+### 3. Ratificar dos decisiones de diseño de 01-05 — ✅ RATIFICADO (2026-08-02)
+
+> El usuario ratificó las dos el 2026-08-02. Sobre (b): la ventana para modificar la
+> migración `0001` se cierra con la primera instalación; después de eso hay que ir por `0003`.
 
 **a) `configuracion` quedó sin columna `tipo`.** El plan 01-05 la pedía; el plan 01-06, ya
 entregado, declara lo contrario en `COLUMNAS_REQUERIDAS` con un motivo explícito. El ejecutor

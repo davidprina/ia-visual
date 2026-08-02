@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-08-01T23:41:16.758Z"
-last_activity: 2026-08-01
+last_updated: "2026-08-02T12:51:12.787Z"
+last_activity: 2026-08-02 -- Phase 01 execution started
 progress:
   total_phases: 12
   completed_phases: 0
@@ -25,9 +25,9 @@ Ver: .planning/PROJECT.md (actualizado 2026-07-24)
 ## Current Position
 
 Phase: 01 (n-cleo-evidencia-trazable-y-contratos-externos-congelados) — EXECUTING
-Plan: 7 of 10
-Status: Ready to execute
-Last activity: 2026-08-01
+Plan: 1 of 10
+Status: Executing Phase 01
+Last activity: 2026-08-02 -- Phase 01 execution started
 
 Progress: [█████░░░░░] 50%
 
@@ -80,6 +80,8 @@ Decisiones recientes que afectan el trabajo actual:
 - [Phase ?]: 01-05: la version de esquema ES el identificador de la revision cabeza de Alembic — una sola verdad sobre en que version esta la base
 - [Phase ?]: 01-05: comprobar_integridad vive en sqlite/integridad.py y no en env.py — el entorno de Alembic no es importable, y una comprobacion que ninguna prueba puede invocar es una que nadie vio fallar
 - [Phase ?]: 01-05: la tabla configuracion no lleva columna tipo — se honra el contrato ya entregado del plan 01-06 por encima de la letra del 01-05
+- [Phase 01] 2026-08-02 — **RATIFICADO por el usuario**: las cinco sustituciones de criterio de aceptación (01-02 reloj sin 100/100 lecturas distintas; 01-03 latencia de `publicar` acotada por `sys.getswitchinterval()`; 01-03 fin de archivo como "la fuente se vacía y no se repone" en vez de `None`; 01-04 piso de miniatura sustituido por banda 5–30 KiB a calidad 90 con el frame plano escrito como prueba; 01-05 `UNIQUE` verificada por operación + DDL en vez de por nombre vía `PRAGMA index_list`). Ninguna afloja verificación: las cinco agregan pruebas. No se replanifica ningún plan.
+- [Phase 01] 2026-08-02 — **RATIFICADO por el usuario**: las dos decisiones de diseño de 01-05 — (a) `configuracion` sin columna `tipo`, honrando el contrato ya entregado de 01-06; (b) `viaje.patente` agregada modificando la migración `0001` en vez de crear una `0003`, válido sólo porque todavía no existe ninguna instalación. Esta ventana se cierra con la primera instalación.
 
 ### Pending Todos
 
