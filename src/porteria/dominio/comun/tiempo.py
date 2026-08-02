@@ -32,6 +32,12 @@ import re
 from dataclasses import dataclass
 from typing import Final, NewType
 
+# SABOTAJE DELIBERADO — rama de prueba `prueba/compuerta-en-rojo`, Tarea 4 del plan 01-01.
+# `cv2` está en `forbidden_modules` del contrato `dominio_limpio` (pyproject.toml). Esta
+# línea existe para provocar la compuerta en rojo y comprobar que la protección de rama
+# bloquea la fusión. NO fusionar esta rama: se cierra el pull request y se borra.
+import cv2  # noqa: F401
+
 __all__ = [
     "Desfasaje",
     "FechaLocal",
